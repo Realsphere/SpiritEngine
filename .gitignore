@@ -6,3 +6,6 @@
 /Spirit Engine/obj
 /Demo/obj
 /Spirit Engine/bin/x86/Debug/net6.0-windows
+/Demo/bin/x86/Debug/net6.0-windows
+/SEdit/bin/Debug/net6.0-windows
+/push.cmd
