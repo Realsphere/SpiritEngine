@@ -1,5 +1,7 @@
-﻿using Realsphere.Spirit.SceneManagement;
+﻿using Realsphere.Spirit.Rendering;
+using Realsphere.Spirit.SceneManagement;
 using SharpDX;
+using SharpDX.Direct3D11;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -12,9 +14,12 @@ namespace Realsphere.Spirit.RenderingCommon
     {
         internal DeviceManager DeviceManager { get; set; }
         internal D3DApplicationBase Target { get; set; }
+        internal SMaterial mat;
         internal virtual bool Show { get; set; }
         internal Matrix World;
         internal GameObject objectOn;
+        internal ShaderResourceView texture;
+        internal SamplerState samplerState;
 
         // Allow the context used for rendering to be specified
         SharpDX.Direct3D11.DeviceContext _renderContext = null;
@@ -26,6 +31,7 @@ namespace Realsphere.Spirit.RenderingCommon
 
         internal RendererBase()
         {
+            Game.ToDispose.Add(this);
             World = Matrix.Identity;
             Show = true;
         }

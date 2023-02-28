@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.Rendering;
 
 namespace Realsphere.Spirit.SceneManagement
@@ -11,6 +12,7 @@ namespace Realsphere.Spirit.SceneManagement
     public class Scene
     {
         public List<GameObject> GameObjects = new List<GameObject>();
+        public List<Trigger> Triggers = new List<Trigger>();
         public SColor SkyBoxColor;
         public Light Light;
 

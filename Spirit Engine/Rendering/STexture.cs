@@ -1,20 +1,6 @@
 ﻿using Realsphere.Spirit.RenderingCommon;
-using SharpDX;
-using SharpDX.D3DCompiler;
-using SharpDX.Direct2D1;
 using SharpDX.Direct3D11;
-using SharpDX.DXGI;
-using SharpDX.WIC;
-using System;
-using System.Buffers;
-using System.Collections.Generic;
-using System.Drawing.Imaging;
-using System.Linq;
-using System.Runtime.InteropServices;
-using Realsphere.Spirit.SceneManagement;
-using Realsphere.Spirit.Internal;
-using System.Text;
-using System.Threading.Tasks;
+using System.IO;
 
 namespace Realsphere.Spirit.Rendering
 {
@@ -31,10 +17,32 @@ namespace Realsphere.Spirit.Rendering
             st.texture = ShaderResourceView.FromFile(Game.deviceManager.Direct3DDevice, fileName);
             st.sampler = new SamplerState(Game.deviceManager.Direct3DDevice, new SamplerStateDescription()
             {
+                AddressU = TextureAddressMode.Clamp,
+                AddressV = TextureAddressMode.Clamp,
+                AddressW = TextureAddressMode.Clamp,
+                Filter = Filter.MinMagMipLinear,
+                ComparisonFunction = Comparison.Never,
+                MaximumAnisotropy = 16,
+                MipLodBias = 0.0f,
+                MinimumLod = 0,
+                MaximumLod = 16,
+            });
+
+            return st;
+        }
+        public static STexture Load(byte[] data)
+        {
+            STexture st = new STexture();
+
+            MemoryStream str = new(data);
+            st.texture = ShaderResourceView.FromStream(Game.deviceManager.Direct3DDevice, str, data.Length);
+            str.Dispose();
+            st.sampler = new SamplerState(Game.deviceManager.Direct3DDevice, new SamplerStateDescription()
+            {
                 AddressU = TextureAddressMode.Wrap,
                 AddressV = TextureAddressMode.Wrap,
                 AddressW = TextureAddressMode.Wrap,
-                Filter = SharpDX.Direct3D11.Filter.MinMagMipLinear
+                Filter = Filter.MinMagMipLinear
             });
 
             return st;
@@ -45,7 +53,7 @@ namespace Realsphere.Spirit.Rendering
         /// </summary>
         public STexture() { }
 
-        internal void apply(MeshRenderer renderer)
+        internal void apply(RendererBase renderer)
         {
             renderer.samplerState = sampler;
             renderer.texture = texture;

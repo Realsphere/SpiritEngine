@@ -30,6 +30,8 @@ namespace Demo
                 Resolution = SpiritGameResolution.I4K
             });
             Game.Player.CameraFar = 100f;
+            Game.ShowTriggers = true;
+            Game.ShowFPS = true;
             Game.Player.PlayerPosition = new SVector3(75f, 15f, 75f);
             DevConsole.Enable();
 
@@ -61,6 +63,8 @@ namespace Demo
             };
             go1.Transform.Position = new SVector3(15f, 5f, 15f);
             go1.Transform.Scale = new SVector3(5f, 5f, 5f);
+            Trigger trigger = new(new(0, 0, 0), new(1f, 1f, 1f), SQuaternion.Identity);
+            nut.Triggers.Add(trigger);
             nut.GameObjects.Add(go1);
             GameObject go3 = GameObject.CreateUsingMesh(cube, "Mesh1");
             go3.Weight = 0f;
@@ -149,6 +153,7 @@ namespace Demo
                 }
             }
 
+            GameObject lastBullet = null;
             // pew pew
             Game.MouseLeftDown += (o, l) =>
             {
@@ -160,6 +165,7 @@ namespace Demo
                 go2.ApplyImpulse(Game.Player.CameraForward * 300f);
                 go2.Material = SMaterial.Create(STexture.Load("texture.png"));
                 Game.ActiveScene.GameObjects.Add(go2);
+                lastBullet = go2;
             };
             Game.MouseRightDown += (o, l) =>
             {
@@ -171,6 +177,14 @@ namespace Demo
                 if (go.Name.StartsWith("Index"))
                 {
                     go.Force = new SVector3(r.Next(-8, 8), r.Next(0, 8), r.Next(-8, 8));
+                }
+            }
+
+            while(true)
+            {
+                if (lastBullet != null && trigger.IsInside(lastBullet))
+                {
+                    lastBullet.Dispose();
                 }
             }
         }

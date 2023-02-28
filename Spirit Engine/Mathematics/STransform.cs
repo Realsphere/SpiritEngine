@@ -5,9 +5,9 @@ namespace Realsphere.Spirit.Mathematics
 {
     public class STransform
     {
-        SVector3 pos;
-        SQuaternion rot;
-        SVector3 scle;
+        SVector3 pos = new();
+        SQuaternion rot = new();
+        SVector3 scle = new();
         public SVector3 Position
         {
             get
@@ -55,8 +55,9 @@ namespace Realsphere.Spirit.Mathematics
             }
         }
 
-        public STransform()
+        public STransform(GameObject o)
         {
+            on = o;
             Position = new SVector3();
             Scale = new SVector3(1f, 1f, 1f);
             Rotation = new SQuaternion();

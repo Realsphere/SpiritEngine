@@ -507,10 +507,6 @@ namespace Realsphere.Spirit.Internal
         internal static void setScene(Scene scene)
         {
             pause = true;
-            world.Broadphase.Dispose();
-            world.Broadphase = new DbvtBroadphase();
-            world.CollisionObjectArray.Clear();
-
             foreach (GameObject go in scene.GameObjects)
             {
                 addToScene(go);

@@ -5,6 +5,7 @@ using Realsphere.Spirit.RenderingCommon;
 using Realsphere.Spirit.RGUI;
 using Realsphere.Spirit.SceneManagement;
 using System;
+using System.Collections.Generic;
 using System.Drawing;
 using System.IO;
 using System.Linq;
@@ -147,6 +148,7 @@ namespace Realsphere.Spirit
         public static EventHandler<int> KeyDown;
         public static EventHandler<int> KeyUp;
         public static EventHandler OnExit;
+        internal static List<IDisposable> ToDispose = new();
 
         public static float SimulationDistance { get; set; } = 100f;
 
@@ -266,6 +268,8 @@ namespace Realsphere.Spirit
             }
         }
 
+        public static bool ShowTriggers { get; set; }
+
         public static void SetFullScreen(bool val)
         {
             if (info.FullScreen == val) return;
@@ -336,7 +340,7 @@ namespace Realsphere.Spirit
                     while (app.Window == null) { }
                     while (!app.Window.IsDisposed)
                         while (PhysicsEngine.running)
-                            if (!PhysicsEngine.pause) { }
+                            if (!PhysicsEngine.pause) PhysicsEngine.step();
                 });
                 t1.SetApartmentState(ApartmentState.STA);
                 t1.Start();
@@ -394,7 +398,7 @@ namespace Realsphere.Spirit
         }
 
         /// <summary>
-        /// Logs the Exception, Shows crash message and Quits.
+        /// Logs the Exception, Shows a crash message and Quits.
         /// </summary>
         public static void Throw(Exception ex)
         {
@@ -412,6 +416,9 @@ namespace Realsphere.Spirit
         /// </summary>
         public static void ExitGame()
         {
+            foreach(var d in ToDispose)
+                d.Dispose();
+
             void dispose(IDisposable dis)
             {
                 if (dis != null) dis.Dispose();
@@ -465,7 +472,7 @@ namespace Realsphere.Spirit
                 DestroyIcon(SpiritD3DApp.wndHicon);
                 Marshal.FreeHGlobal(SpiritD3DApp.wndHicon);
             }
-
+            
             if (OnExit != null) OnExit.Invoke(null, new());
             Environment.Exit(0);
         }

@@ -20,8 +20,6 @@ namespace Realsphere.Spirit.Internal
         List<Buffer> indexBuffers = new List<Buffer>();
         // Texture resources
         internal List<ShaderResourceView> textureViews = new List<ShaderResourceView>();
-        internal ShaderResourceView texture;
-        internal SamplerState samplerState;
 
         internal SMaterial mat;
 
@@ -105,12 +103,15 @@ namespace Realsphere.Spirit.Internal
 
         protected override void DoRender()
         {
+            if (Game.app.pauseRendering) return;
+
             // Retrieve device context
             var context = DeviceManager.Direct3DContext;
 
             // Draw sub-meshes grouped by material
             for (var mIndx = 0; mIndx < mesh.Materials.Count; mIndx++)
             {
+                if (Game.app.pauseRendering) return;
                 var subMeshesForMaterial =
                     (from sm in mesh.SubMeshes
                      where sm.MaterialIndex == mIndx
@@ -135,6 +136,7 @@ namespace Realsphere.Spirit.Internal
                     // Bind textures to the pixel shader
                     int texIndxOffset = mIndx * Mesh.MaxTextures;
                     material.HasTexture = (uint)(texture == null ? 0 : 1);
+                    if (Game.app.pauseRendering) return;
                     if (material.HasTexture == 1) context.PixelShader.SetShaderResource(0, texture);
 
                     // Set texture sampler state
@@ -147,6 +149,7 @@ namespace Realsphere.Spirit.Internal
                 // For each sub-mesh
                 foreach (var subMesh in subMeshesForMaterial)
                 {
+                    if (Game.app.pauseRendering) return;
                     // Ensure the vertex buffer and index buffers are in range
                     if (subMesh.VertexBufferIndex < vertexBuffers.Count && subMesh.IndexBufferIndex < indexBuffers.Count)
                     {

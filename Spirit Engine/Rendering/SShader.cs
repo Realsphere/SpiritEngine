@@ -2,6 +2,7 @@
 using Realsphere.Spirit.RenderingCommon;
 using SharpDX.D3DCompiler;
 using SharpDX.Direct3D11;
+using SharpDX.DXGI;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Realsphere.Spirit.Rendering
 {
-    public enum SInputElementFormat
+    public enum SIEFormat
     {
         Unknown,
         R32G32B32A32_Typeless,
@@ -131,151 +132,93 @@ namespace Realsphere.Spirit.Rendering
         B4G4R4A4_UNorm
     }
 
-    /// <summary>
-    /// Shader Input Element
-    /// </summary>
+    
     public struct SInputElement
     {
-        internal InputElement value;
+        public string Name;
+        public int Index;
+        public SIEFormat Format;
+        public int Offset;
+        public int Slot;
 
-        public SInputElement(string name, int index, SInputElementFormat format, int offset, int slot)
+        public SInputElement(string name, int index, SIEFormat format, int offset, int slot)
         {
-            value = new InputElement(name, index, (SharpDX.DXGI.Format)format, offset, slot);
+            Slot = slot;
+            Name = name; 
+            Index = index; 
+            Format = format; 
+            Offset = offset;
         }
     }
 
-    /// <summary>
-    /// One of the only ways to directly interact with the rendering pipeline, by using shaders.
-    /// </summary>
-    public class SShader : IDisposable
+    
+    public class SShader : SDisposable
     {
         internal VertexShader vs;
-        internal PixelShader pixel;
-        internal InputLayout vl;
-        internal List<SInputElement> ie;
-
-        public void Dispose()
-        {
-            vs.Dispose();
-            pixel.Dispose();
-        }
+        internal PixelShader ps;
+        internal InputLayout layout;
 
         /// <summary>
-        /// Sets the Pixel and Vertex shader of the rendering pipeline to the Shader.
+        /// Compiles a DirectX HLSL Shader.
         /// </summary>
-        public void UseForRendering()
+        public static SShader Compile(string shaderCode, string vertexShaderFunc, string vertexShaderProfile, string pixelShaderFunc, string pixelShaderProfile, SInputElement[] inputElements)
         {
-            Game.deviceManager.Direct3DContext.PixelShader.Set(pixel);
-            Game.deviceManager.Direct3DContext.VertexShader.Set(vs);
-        }
-
-
-        /// <summary>
-        /// Sets the Pixel and Vertex shader of the rendering pipeline to the default Shaders.
-        /// </summary>
-        public void StopUsingForRendering()
-        {
-            Game.deviceManager.Direct3DContext.PixelShader.Set(Game.app.phongShader);
-            Game.deviceManager.Direct3DContext.VertexShader.Set(Game.app.vertexShader);
-        }
-
-        /// <summary>
-        /// Check for the Documentation at http://realsphere.org/spirit/docs/shaders.html#using_hlsl_to_create_a_custom_shader
-        /// </summary>
-        public SShader(string shaderCode, string vertexShaderMainName, string pixelShaderMainName, List<SInputElement> vertexShaderInputElements, string vertexShaderMainProfile = "vs_5_0", string pixelShaderMainProfile = "ps_5_0")
-        {
-            if (Game.app == null) throw new NotSupportedException("It is not supported loading shaders, without having the game started.\nPlease start the Game first!");
-
-            string hlslCode = shaderCode.Replace("%spiritHLSLcommons", @"cbuffer PerObject : register(b0)
-{
-    float4x4 WorldViewProjection;
-
-    float4x4 World;
-
-    float4x4 WorldInverseTranspose;
-};
-
-struct DirectionalLight
-{
-    float4 Color;
-    float3 Direction;
-};
-
-cbuffer PerFrame: register (b1)
-{
-    DirectionalLight Light;
-    float3 CameraPosition;
-};
-
-cbuffer PerMaterial : register (b2)
-{
-    float4 MaterialAmbient;
-    float4 MaterialDiffuse;
-    float4 MaterialSpecular;
-    float MaterialSpecularPower;
-    bool HasTexture;
-    float4 MaterialEmissive;
-    float4x4 UVTransform;
-};
-
-struct VertexShaderInput
-{
-    float4 Position : SV_Position;
-    float3 Normal : NORMAL;
-    float4 Color : COLOR0;
-    float2 TextureUV: TEXCOORD0;
-};
-
-struct PixelShaderInput
-{
-    float4 Position : SV_Position;
-    float4 Diffuse : COLOR;
-    float2 TextureUV: TEXCOORD0;
-
-    float3 WorldNormal : NORMAL;
-    float3 WorldPosition : WORLDPOS;
-};
-
-float3 Lambert(float4 pixelDiffuse, float3 normal, float3 toLight)
-{
-    float3 diffuseAmount = saturate(dot(normal, toLight));
-    return pixelDiffuse.rgb * diffuseAmount;
-}
-
-float3 SpecularPhong(float3 normal, float3 toLight, float3 toEye)
-{
-    float3 reflection = reflect(-toLight, normal);
-
-    float specularAmount = pow(saturate(dot(reflection, toEye)), max(MaterialSpecularPower, 0.00001f));
-    return MaterialSpecular.rgb * specularAmount;
-}
-
-float3 SpecularBlinnPhong(float3 normal, float3 toLight, float3 toEye)
-{
-    float3 halfway = normalize(toLight + toEye);
-
-    float specularAmount = pow(saturate(dot(normal, halfway)), max(MaterialSpecularPower, 0.00001f));
-    return MaterialSpecular.rgb * specularAmount;
-}");
-            using (var vertexShaderBytecode = HLSLCompiler.CompileFromCode(hlslCode, vertexShaderMainName, vertexShaderMainProfile))
+            SShader ss = new();
+            var device = Game.deviceManager.Direct3DDevice;
+            using (var vertexShaderBytecode = HLSLCompiler.CompileFromCode(shaderCode, vertexShaderFunc, vertexShaderProfile))
             {
-                if (vertexShaderBytecode == null || vertexShaderBytecode.GetPart(ShaderBytecodePart.InputSignatureBlob) == null) throw new SpiritDXShaderException("The vertex shader is corrupted.\nPlease read the documentation at: http://realsphere.org/spirit/docs/shaders.html!");
-                vs = new VertexShader(Game.deviceManager.Direct3DDevice, vertexShaderBytecode);
-                ie = vertexShaderInputElements;
-                InputElement[] sie = new InputElement[ie.Count];
-                int i = 0;
-                vertexShaderInputElements.ForEach(iev =>
+                List<InputElement> inputElements1 = new List<InputElement>();
+
+                inputElements1.AddRange(new[]
                 {
-                    sie[i] = iev.value;
-                    i++;
+                    new InputElement("SV_Position", 0, Format.R32G32B32_Float, 0, 0),
+                    new InputElement("NORMAL", 0, Format.R32G32B32_Float, 12, 0),
+                    new InputElement("COLOR", 0, Format.R8G8B8A8_UNorm, 24, 0),
+                    new InputElement("TEXCOORD", 0, Format.R32G32_Float, 28, 0),
                 });
-                var inputSignatureBlob = vertexShaderBytecode.GetPart(ShaderBytecodePart.InputSignatureBlob);
-                vl = new InputLayout(Game.deviceManager.Direct3DDevice,
-                    inputSignatureBlob,
-                    sie);
+
+                foreach (var ie in inputElements)
+                    inputElements1.Add(new InputElement(ie.Name, ie.Index, (Format)ie.Format, ie.Offset, ie.Slot));
+
+                ss.vs = new VertexShader(device, vertexShaderBytecode);
+                // Layout from VertexShader input signature
+                ss.layout = new InputLayout(device, vertexShaderBytecode.GetPart(ShaderBytecodePart.InputSignatureBlob), inputElements1.ToArray());
             }
-            using (var bytecode = HLSLCompiler.CompileFromCode(hlslCode, pixelShaderMainName, pixelShaderMainProfile))
-                pixel = new PixelShader(Game.deviceManager.Direct3DDevice, bytecode);
+
+            using (var bytecode = HLSLCompiler.CompileFromCode(shaderCode, pixelShaderFunc, pixelShaderProfile))
+                ss.ps = new PixelShader(device, bytecode);
+
+            return ss;
+        }
+
+        /// <summary>
+        /// Sets the Shader as the active Shader for rendering.
+        /// </summary>
+        public void Use()
+        {
+            var context = Game.deviceManager.Direct3DContext;
+            context.InputAssembler.InputLayout = layout;
+            context.VertexShader.Set(vs);
+            context.PixelShader.Set(ps);
+        }
+
+        /// <summary>
+        /// Sets the default Shader as the active Shader for rendering.
+        /// </summary>
+        public void Unuse()
+        {
+            var context = Game.deviceManager.Direct3DContext;
+            context.InputAssembler.InputLayout = layout;
+            context.VertexShader.Set(vs);
+            context.PixelShader.Set(ps);
+        }
+
+        public override void SDispose()
+        {
+            Unuse();
+            layout.Dispose();
+            vs.Dispose();
+            ps.Dispose();
         }
     }
 }

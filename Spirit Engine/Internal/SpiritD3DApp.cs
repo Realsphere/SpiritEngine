@@ -2,6 +2,7 @@
 using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Input;
 using Realsphere.Spirit.Internal;
+using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.Rendering;
 using Realsphere.Spirit.RenderingCommon;
 using Realsphere.Spirit.SceneManagement;
@@ -71,6 +72,8 @@ namespace Realsphere.Spirit
         #endregion
 
         internal List<Keys> keysDown = new();
+
+        internal bool pauseRendering;
 
         internal SpiritD3DApp(bool fullscreen, string title, int w, int h, Bitmap companyico, Bitmap gameico)
         {
@@ -165,19 +168,6 @@ namespace Realsphere.Spirit
             _window.KeyUp += (o, e) =>
             {
                 keysDown.Remove(e.KeyCode);
-            };
-            _window.Resize += (o, e) =>
-            {
-                DeviceManager.Direct2DDevice.Dispose();
-                DeviceManager.Direct2DContext.Dispose();
-                DeviceManager.Direct3DDevice.Dispose();
-                DeviceManager.Direct3DContext.Dispose();
-                DeviceManager.DirectWriteFactory.Dispose();
-                DeviceManager.WICFactory.Dispose();
-
-                DeviceManager.Dispose();
-                DeviceManager.Initialize();
-                Game.RGUI = new RGUI.RGUI(DeviceManager.Direct2DDevice);
             };
 
             if (toSetSize != null) Window.ClientSize = toSetSize.Value;
@@ -332,6 +322,33 @@ namespace Realsphere.Spirit
                 CullMode = CullMode.Front,
                 IsFrontCounterClockwise = false,
             }));
+
+            BlendStateDescription blendStateDesc = new BlendStateDescription()
+            {
+                AlphaToCoverageEnable = false,
+                IndependentBlendEnable = false,
+            };
+
+            for (int i = 0; i < blendStateDesc.RenderTarget.Length; i++)
+            {
+                blendStateDesc.RenderTarget[i] = new RenderTargetBlendDescription()
+                {
+                    IsBlendEnabled = true,
+                    BlendOperation = BlendOperation.Add,
+                    SourceBlend = BlendOption.SourceAlpha,
+                    DestinationBlend = BlendOption.InverseSourceAlpha,
+                    AlphaBlendOperation = BlendOperation.Add,
+                    SourceAlphaBlend = BlendOption.One,
+                    DestinationAlphaBlend = BlendOption.Zero,
+                    RenderTargetWriteMask = ColorWriteMaskFlags.All
+                };
+            }
+
+            // Create a blend state object from the description
+            BlendState blendState = new BlendState(device, blendStateDesc);
+
+            // Set the blend state on the context
+            context.OutputMerger.SetBlendState(blendState);
         }
 
         protected override void CreateSizeDependentResources(D3DApplicationBase app)
@@ -416,7 +433,8 @@ namespace Realsphere.Spirit
             Logger.Log("Initialisation finished, starting Render Loop!", LogLevel.Information);
             RenderLoop.Run(Window, () =>
             {
-                PhysicsEngine.step();
+                if (pauseRendering) return;
+
                 if (!Game.IsRunning)
                     Game.IsRunning = true;
 
@@ -447,7 +465,6 @@ namespace Realsphere.Spirit
                 context.UpdateSubresource(ref perFrame, perFrameBuffer);
                 try
                 {
-                    // Its much faster to sort the list than render all objects where the camera cant see them.
                     foreach (GameObject go in Game.ActiveScene.GameObjects.Where(x => x.renderer != null))
                     {
                         go.renderer.PerMaterialBuffer = perMaterialBuffer;
@@ -455,6 +472,16 @@ namespace Realsphere.Spirit
                     }
                 }
                 catch (InvalidOperationException) { }
+
+                if(Game.ShowTriggers)
+                {
+                    //Display Triggers
+                    foreach (Trigger trigger in Game.ActiveScene.Triggers)
+                    {
+                        trigger.go.renderer.PerMaterialBuffer = perMaterialBuffer;
+                        trigger.render(context);
+                    }
+                }
 
                 if (Game.ShowFPS) fps.Render();
 
@@ -482,7 +509,7 @@ namespace Realsphere.Spirit
             fps.Drop();
         }
 
-        void RenderObject(GameObject obj, Matrix objMatrix, DeviceContext context, Matrix viewProjection)
+        internal void RenderObject(GameObject obj, Matrix objMatrix, DeviceContext context, Matrix viewProjection)
         {
             var perObject = new ConstantBuffers.PerObject();
 

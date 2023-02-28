@@ -85,6 +85,16 @@ namespace Realsphere.Spirit.SceneManagement
                 if (rig != null) rig.SetMassProps(weight, rig.CollisionShape.CalculateLocalInertia(weight));
             }
         }
+        public bool HasCollision
+        {
+            get => (rig != null && rig.CollisionShape != null);
+            set
+            {
+                if (rig == null) return;
+                if (!value) rig.CollisionShape = new EmptyShape();
+                else rig.CollisionShape = PhysicsEngine.GetObjShape(this);
+            }
+        }
         internal Matrix PWorldTransform
         {
             get
@@ -158,18 +168,17 @@ namespace Realsphere.Spirit.SceneManagement
 
         public void Dispose()
         {
+            PhysicsEngine.world.RemoveRigidBody(rig);
+            Game.ActiveScene.GameObjects.Remove(this);
             rig.CollisionShape.Dispose();
-            rig.ForceActivationState(ActivationState.DisableSimulation);
-            rig.Dispose();
-            rig = null;
-            Material = null;
             renderer.Dispose();
+            rig.Dispose();
         }
 
         public GameObject(string name)
         {
             Name = name;
-            Transform = new STransform();
+            Transform = new STransform(this);
             Transform.on = this;
             Material = new SMaterial()
             {
