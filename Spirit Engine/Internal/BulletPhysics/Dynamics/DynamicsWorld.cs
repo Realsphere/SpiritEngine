@@ -4,6 +4,7 @@ using System.Runtime.InteropServices;
 using System.Security;
 using System.Numerics;
 using static BulletSharp.UnsafeNativeMethods;
+using Realsphere.Spirit.Internal;
 
 namespace BulletSharp
 {
@@ -237,6 +238,7 @@ namespace BulletSharp
 
 		public int StepSimulation(float timeStep, int maxSubSteps = 1, float fixedTimeStep = 1.0f / 60.0f)
 		{
+			if (PhysicsEngine.pause) return 0;
 			return btDynamicsWorld_stepSimulation(Native, timeStep, maxSubSteps,
 				fixedTimeStep);
 		}

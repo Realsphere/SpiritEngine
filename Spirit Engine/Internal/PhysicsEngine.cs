@@ -402,7 +402,7 @@ namespace Realsphere.Spirit.Internal
         static Dispatcher dispatcher = new CollisionDispatcher(conf);
         static BroadphaseInterface broadphase = new DbvtBroadphase();
         static Stopwatch simTime = new Stopwatch();
-        static float time, timeStep;
+        internal static float time, timeStep;
         internal static bool pause;
 
         internal static DynamicsWorld DW
@@ -438,7 +438,6 @@ namespace Realsphere.Spirit.Internal
 
             world.RayTest(pos, to, closestResults);
 
-            // ChatGPT helped me here
             if (closestResults.HasHit)
                 if (Game.ActiveScene.GameObjects.Where(x => x.rig.Native == closestResults.CollisionObject.Native).Any())
                     return Game.ActiveScene.GameObjects.Where(x => x.rig.Native == closestResults.CollisionObject.Native).First();
@@ -455,7 +454,7 @@ namespace Realsphere.Spirit.Internal
             }
             timeStep = (float)simTime.Elapsed.TotalSeconds - time;
             time = (float)simTime.Elapsed.TotalSeconds;
-            world.StepSimulation(timeStep);
+            if (!pause) world.StepSimulation(timeStep);
         }
 
         internal static CollisionShape GetObjShape(GameObject go)
@@ -484,6 +483,7 @@ namespace Realsphere.Spirit.Internal
         internal static void addToScene(GameObject go)
         {
             if (world == null) return;
+            pause = true;
             CollisionShape shape = GetObjShape(go);
 
             go.renderer.World = Matrix.Identity;
@@ -502,6 +502,7 @@ namespace Realsphere.Spirit.Internal
             go.rig = body;
             world.AddRigidBody(body);
             body.Gravity = new System.Numerics.Vector3(0f, go.HasGravity ? -9.81f : 0f, 0f);
+            pause = false;
         }
 
         internal static void setScene(Scene scene)

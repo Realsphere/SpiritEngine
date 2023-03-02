@@ -1,29 +1,16 @@
 ﻿using BulletSharp;
+using Realsphere.Spirit.BulletPhysics;
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
 using SharpDX;
 using System;
 using System.Numerics;
 using System.Threading;
+using System.Windows.Documents;
 using static Realsphere.Spirit.Game;
 
 namespace Realsphere.Spirit.SceneManagement
 {
-    internal class VariableMotionState : MotionState
-    {
-        internal Matrix4x4 matrix;
-
-        public override void GetWorldTransform(out Matrix4x4 worldTrans)
-        {
-            worldTrans = matrix;
-        }
-
-        public override void SetWorldTransform(ref Matrix4x4 worldTrans)
-        {
-            matrix = worldTrans;
-        }
-    }
-
     public class Player
     {
         SVector3 playerpos = new SVector3();
@@ -31,12 +18,18 @@ namespace Realsphere.Spirit.SceneManagement
         {
             get
             {
-                return playerpos;
+                return _ghostObject == null ? playerpos : _ghostObject.WorldTransform.Translation;
             }
             set
             {
                 playerpos = value;
+                if(_ghostObject != null)
+                {
+                    var org = new System.Numerics.Vector3(value.X, value.Y, value.Z);
+                    _character.Warp(ref org);
+                }
                 AudioMaster.setListenerData();
+                app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
             }
         }
         public SVector3 CameraForward
@@ -55,6 +48,7 @@ namespace Realsphere.Spirit.SceneManagement
                 else return new();
             }
         }
+        internal PairCachingGhostObject PairCachingGhostObject;
         public float RotationX
         {
             get
@@ -109,6 +103,7 @@ namespace Realsphere.Spirit.SceneManagement
                 camf = value;
                 if (Game.app == null) return;
                 Game.app.projectionMatrix = Matrix.PerspectiveFovRH((float)Math.PI / 3f, Game.app.Width / (float)Game.app.Height, Game.Player.CameraNear, Game.Player.CameraFar);
+                app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
             }
         }
         public float CameraNear
@@ -122,7 +117,15 @@ namespace Realsphere.Spirit.SceneManagement
                 camn = value;
                 if (Game.app == null) return;
                 Game.app.projectionMatrix = Matrix.PerspectiveFovRH((float)Math.PI / 3f, Game.app.Width / (float)Game.app.Height, Game.Player.CameraNear, Game.Player.CameraFar);
+                app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
             }
+        }
+
+        internal PairCachingGhostObject _ghostObject;
+        internal KinematicCharacterController _character;
+
+        public Player()
+        {
         }
 
         /// <summary>
@@ -130,6 +133,21 @@ namespace Realsphere.Spirit.SceneManagement
         /// </summary>
         public void EnablePhysics()
         {
+            throw new NotImplementedException("Sorry, this is currently not available!");
+            var _capsuleShape = new CapsuleShape(PlayerWeight, PlayerHeight);
+            _ghostObject = new PairCachingGhostObject()
+            {
+                CollisionShape = _capsuleShape,
+                CollisionFlags = CollisionFlags.CharacterObject,
+                WorldTransform = Matrix4x4.CreateTranslation(playerpos)
+            };
+            PhysicsEngine.world.AddCollisionObject(_ghostObject, CollisionFilterGroups.CharacterFilter, CollisionFilterGroups.AllFilter);
+
+            var up = System.Numerics.Vector3.UnitY;
+            _character = new KinematicCharacterController(_ghostObject, _capsuleShape, 20f, ref up);
+            PhysicsEngine.world.AddAction(_character);
+
+            _ghostObject.WorldTransform = Matrix4x4.CreateTranslation(playerpos);
         }
 
         /// <summary>
@@ -137,6 +155,7 @@ namespace Realsphere.Spirit.SceneManagement
         /// </summary>
         public void DisablePhysics()
         {
+            throw new NotImplementedException("Sorry, this is currently not available!");
         }
     }
 }

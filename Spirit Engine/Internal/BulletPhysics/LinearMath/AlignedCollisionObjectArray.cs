@@ -98,7 +98,7 @@ namespace BulletSharp
 				{
 					btSoftRigidDynamicsWorld_addSoftBody(_collisionWorld.Native, item.Native);
 				}
-				else
+				
 				{
 					btCollisionWorld_addCollisionObject(_collisionWorld.Native, item.Native);
 				}

@@ -7,6 +7,8 @@ using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.Rendering;
 using Realsphere.Spirit.Internal;
 using BulletSharp;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Realsphere.Spirit.SceneManagement
 {
@@ -44,6 +46,7 @@ namespace Realsphere.Spirit.SceneManagement
             set
             {
                 sm = value;
+                sm.mesh.VertexBuffers.ForEach(x => pts.AddRange(x.Select(x => x.Position)));
             }
         }
         public STransform Transform { get; }
@@ -53,6 +56,7 @@ namespace Realsphere.Spirit.SceneManagement
         float restit = 1f;
         bool hgravity = true;
         internal bool setgrav;
+        internal List<Vector3> pts = new();
         public bool HasGravity
         {
             get => hgravity;
@@ -64,7 +68,7 @@ namespace Realsphere.Spirit.SceneManagement
             }
         }
         internal SModel sm;
-
+        public SBoundingBox BoundingBox { get; internal set; }
         public SVector3 Force
         {
             set
@@ -162,7 +166,7 @@ namespace Realsphere.Spirit.SceneManagement
             mesh.World = Matrix.Identity;
             go.renderer = mesh;
             go.renderer.objectOn = go;
-            go.sm = model;
+            go.Model = model;   
             return go;
         }
 

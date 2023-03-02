@@ -1,9 +1,15 @@
-﻿using Realsphere.Spirit.DeveloperConsole;
+﻿using BulletSharp;
+using OpenAL;
+using Realsphere.Spirit.BulletPhysics;
+using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
+using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.RenderingCommon;
 using Realsphere.Spirit.RGUI;
 using Realsphere.Spirit.SceneManagement;
+using SharpDX;
+using SharpDX.Direct2D1.Effects;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -11,8 +17,10 @@ using System.IO;
 using System.Linq;
 using System.Runtime.InteropServices;
 using System.Threading;
+using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
+using System.Windows.Media.Media3D;
 using Cursor = System.Windows.Forms.Cursor;
 
 namespace Realsphere.Spirit
@@ -27,8 +35,30 @@ namespace Realsphere.Spirit
             {
                 return new SpiritGameResolution()
                 {
+                    Width = 1280,
+                    Height = 720
+                };
+            }
+        }
+        public static SpiritGameResolution FHD
+        {
+            get
+            {
+                return new SpiritGameResolution()
+                {
                     Width = 1920,
                     Height = 1080
+                };
+            }
+        }
+        public static SpiritGameResolution QHD
+        {
+            get
+            {
+                return new SpiritGameResolution()
+                {
+                    Width = 2560,
+                    Height = 1440
                 };
             }
         }
@@ -40,17 +70,6 @@ namespace Realsphere.Spirit
                 {
                     Width = 3840,
                     Height = 2160
-                };
-            }
-        }
-        public static SpiritGameResolution I480P
-        {
-            get
-            {
-                return new SpiritGameResolution()
-                {
-                    Width = 640,
-                    Height = 480
                 };
             }
         }
@@ -309,6 +328,9 @@ namespace Realsphere.Spirit
         [STAThread]
         public static void StartGame(SpiritStartInfo ssi)
         {
+#if RELEASE
+            throw new NotSupportedException("Release mode is currently not supported.");
+#endif
             ShowFPS = ssi.ShowFPS;
             gameName = ssi.GameName;
             DateTime dt = DateTime.Now;
@@ -340,25 +362,50 @@ namespace Realsphere.Spirit
                     while (app.Window == null) { }
                     while (!app.Window.IsDisposed)
                         while (PhysicsEngine.running)
-                            if (!PhysicsEngine.pause) PhysicsEngine.step();
+                            if (!PhysicsEngine.pause)
+                            {
+                                PhysicsEngine.step();
+                                if(Player._ghostObject != null) Console.WriteLine(Player._ghostObject.WorldTransform.Translation);
+                            }
                 });
                 t1.SetApartmentState(ApartmentState.STA);
                 t1.Start();
+                var t2 = new Thread(() =>
+                {
+                    while (app == null) { }
+                    while (app.Window == null) { }
+                    while (!app.Window.IsDisposed)
+                        while (IsRunning)
+                            if (ActiveScene != null)
+                                Parallel.ForEach(ActiveScene.GameObjects, (x) =>
+                                {
+                                    Vector3[] pts = x.pts.ToArray();
+                                    for (int i = 0; i < pts.Length; i++)
+                                    {
+                                        var vec = Vector3.Transform(pts[i], x.WorldTransform);
+                                        pts[i] = new(vec.X, vec.Y, vec.Z);
+                                    }
+                                    var bb = BoundingBox.FromPoints(pts);
+                                    x.BoundingBox = SBoundingBox.FDX(bb);
+                                });
+                });
+                t2.SetApartmentState(ApartmentState.STA);
+                t2.Start();
                 Logger.Log("DirectX Initializing", LogLevel.Information);
                 appThread = new Thread(() =>
                 {
-                    //try
-                    //{
-                    app = new SpiritD3DApp(ssi.FullScreen, ssi.GameName, ssi.Resolution.Width, ssi.Resolution.Height, ssi.CompanyLogo.Base64StringToBitmap(), ssi.GameIcon.Base64StringToBitmap());
-                    app.Window.FormClosed += Window_FormClosed;
-                    app.VSync = ssi.VSync;
-                    app.Initialize();
-                    app.Run();
-                    //}
-                    //catch(Exception ex)
-                    //{
-                    //    Throw(ex);
-                    //}
+                    try
+                    {
+                        app = new SpiritD3DApp(ssi.FullScreen, ssi.GameName, ssi.Resolution.Width, ssi.Resolution.Height, ssi.CompanyLogo.Base64StringToBitmap(), ssi.GameIcon.Base64StringToBitmap());
+                        app.Window.FormClosed += Window_FormClosed;
+                        app.VSync = ssi.VSync;
+                        app.Initialize();
+                        app.Run();
+                    }
+                    catch(Exception ex)
+                    {
+                        Throw(ex);
+                    }
                 });
                 appThread.SetApartmentState(ApartmentState.STA);
                 appThread.Start();
@@ -375,6 +422,11 @@ namespace Realsphere.Spirit
                     if (!DevConsole.show) if (e.Button == MouseButtons.Left && MouseLeftUp != null) MouseLeftUp.Invoke(null, e.Location);
                     if (!DevConsole.show) if (e.Button == MouseButtons.Middle && MouseMiddleUp != null) MouseMiddleUp.Invoke(null, e.Location);
                     if (!DevConsole.show) if (e.Button == MouseButtons.Right && MouseRightUp != null) MouseRightUp.Invoke(null, e.Location);
+                };
+                OnExit += (o, e) =>
+                {
+                    t1.Join();
+                    t2.Join();
                 };
             }
             catch (Exception ex)
@@ -416,8 +468,11 @@ namespace Realsphere.Spirit
         /// </summary>
         public static void ExitGame()
         {
-            foreach(var d in ToDispose)
-                d.Dispose();
+            try
+            {
+                foreach (var d in ToDispose)
+                    d.Dispose();
+            }catch(InvalidOperationException) { }
 
             void dispose(IDisposable dis)
             {
@@ -496,6 +551,39 @@ namespace Realsphere.Spirit
                 }
                 if (!CameraLookActive) Cursor.Show();
                 float speed = Game.Player.Speed / 50000f;
+
+                //if (Player._character == null) return;
+                //if (Player._ghostObject == null) return;
+                //System.Numerics.Matrix4x4 transform = Player._ghostObject.WorldTransform;
+                //
+                //var forwardDir = new Vector3(transform.M31, transform.M32, transform.M33);
+                //forwardDir.Normalize();
+                //
+                //var upDir = new Vector3(transform.M21, transform.M22, transform.M23);
+                //upDir.Normalize();
+                //
+                //Vector3 walkDirection = Vector3.Zero;
+                //const float walkVelocity = 1.1f * 4.0f;
+                //float walkSpeed = walkVelocity * 10;
+                //
+                //if (Keyboard.IsKeyDown(Key.W))
+                //{
+                //    walkDirection += forwardDir;
+                //}
+                //if (Keyboard.IsKeyDown(Key.S))
+                //{
+                //    walkDirection -= forwardDir;
+                //}
+                //
+                //if (Keyboard.IsKeyDown(Key.Space))
+                //{
+                //    Player._character.Jump();
+                //    return;
+                //}
+                //
+                //var res = walkDirection * walkSpeed;
+                //Player._character.SetWalkDirection(new System.Numerics.Vector3(res.X, res.Y, res.Z));
+                //return;
                 if (Keyboard.IsKeyDown(Key.A))
                 {
                     Game.Player.PlayerPosition -= Player.CameraRight * speed;

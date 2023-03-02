@@ -1,7 +1,9 @@
 #region Using Statements
+using Realsphere.Spirit.BulletPhysics;
 using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Input;
 using Realsphere.Spirit.Internal;
+using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.Rendering;
 using Realsphere.Spirit.RenderingCommon;
@@ -34,6 +36,8 @@ namespace Realsphere.Spirit
         internal VertexShader vertexShader;
 
         PixelShader pixelShader;
+
+        internal BoundingSphere cameraBoundingSphere = new BoundingSphere();
 
         PixelShader depthPixelShader;
 
@@ -93,6 +97,9 @@ namespace Realsphere.Spirit
                 wnd.Icon = ico;
             }
 
+            wnd.BackColor = System.Drawing.Color.Black;
+            wnd.BackgroundImage = Properties.Resources.Spirit_Logo;
+            wnd.BackgroundImageLayout = ImageLayout.Center;
             wnd.Text = title;
             wnd.FormBorderStyle = FormBorderStyle.Sizable;
             _window = wnd;
@@ -374,6 +381,11 @@ namespace Realsphere.Spirit
             }
         }
 
+        internal bool canCameraSeeObject(GameObject go)
+        {
+            return go.BoundingBox.dx.Intersects(cameraBoundingSphere);
+        }
+
         internal override void Run()
         {
             fps = new FpsCounter(this);
@@ -413,7 +425,7 @@ namespace Realsphere.Spirit
                 float h = cos(Game.app.rotationX) * Game.app.dist;
                 Game.app.cameraTarget = new Vector3(cos(Game.app.rotationY) * h, sin(Game.app.rotationX) * Game.app.dist, sin(Game.app.rotationY) * h);
                 Game.app.viewMatrix = Matrix.LookAtRH(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), new Vector3(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z) + Game.app.cameraTarget, Vector3.UnitY);
-
+                
                 Cursor.Position = Game.app.Window.PointToScreen(new System.Drawing.Point((Game.app.Window.ClientSize.Width / 2), (Game.app.Window.ClientSize.Height / 2)));
             };
 
@@ -465,7 +477,7 @@ namespace Realsphere.Spirit
                 context.UpdateSubresource(ref perFrame, perFrameBuffer);
                 try
                 {
-                    foreach (GameObject go in Game.ActiveScene.GameObjects.Where(x => x.renderer != null))
+                    foreach (GameObject go in Game.ActiveScene.GameObjects.Where(x => x.renderer != null && canCameraSeeObject(x)))
                     {
                         go.renderer.PerMaterialBuffer = perMaterialBuffer;
                         RenderObject(go, go.WorldTransform, context, viewProjection);
@@ -500,6 +512,12 @@ namespace Realsphere.Spirit
                 }
 
                 Game.RGUI.Render(DeviceManager.Direct2DContext);
+
+                if(Game.ShowFPS)
+                {
+                    fps.show = true;
+                    fps.Render();
+                }
 
                 Present();
 

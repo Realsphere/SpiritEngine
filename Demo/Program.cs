@@ -1,8 +1,10 @@
 ﻿using System;
 using System.Diagnostics;
 using System.Drawing;
+using System.IO;
 using System.Linq;
 using System.Threading;
+using Newtonsoft.Json;
 using Realsphere.Spirit;
 using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Input;
@@ -32,18 +34,14 @@ namespace Demo
             Game.Player.CameraFar = 100f;
             Game.ShowTriggers = true;
             Game.ShowFPS = true;
-            Game.Player.PlayerPosition = new SVector3(75f, 15f, 75f);
+            Game.Player.PlayerPosition = new SVector3(15f, 10f, 15f);
             DevConsole.Enable();
-
-            Game.RGUI.Controls.Add(new RLabel()
-            {
-                FontSize = 50f,
-                Text = "Hello RGUI!"
-            });
 
             SModel cube = StandarizedShapes.Cube;
             Scene nut = new Scene();
             nut.SkyBoxColor = new SColor(0f, 0f, 0f, 255f);
+            Trigger trigger = new(new(), new(2f, 2f, 2f), SQuaternion.Identity);
+            nut.Triggers.Add(trigger);
 
             //AudioSource source = new("whoosh.wav");
             //source.PlayLooping();
@@ -62,9 +60,7 @@ namespace Demo
                 SpecularPower = 20f
             };
             go1.Transform.Position = new SVector3(15f, 5f, 15f);
-            go1.Transform.Scale = new SVector3(5f, 5f, 5f);
-            Trigger trigger = new(new(0, 0, 0), new(1f, 1f, 1f), SQuaternion.Identity);
-            nut.Triggers.Add(trigger);
+            go1.Transform.Scale = new SVector3(1f, 1f, 1f);
             nut.GameObjects.Add(go1);
             GameObject go3 = GameObject.CreateUsingMesh(cube, "Mesh1");
             go3.Weight = 0f;
@@ -127,11 +123,11 @@ namespace Demo
             Random r = new Random();
             for (int i = 0; i < 5000; i++)
             {
-                continue;
                 GameObject star = GameObject.CreateUsingMesh(cube, "Index: " + i);
                 star.Weight = 1f;
+                star.HasGravity = false;
                 star.Transform.Position = new SVector3(r.Next(-200, 200), r.Next(-200, 200), r.Next(-200, 200));
-                star.Transform.Scale = new SVector3(5f, 5f, 5f);
+                star.Transform.Scale = new SVector3(1f, 1f, 1f);
                 star.Material = new SMaterial()
                 {
                     Ambient = new SColor(255f, 255f, 255f, 255f),
@@ -145,15 +141,7 @@ namespace Demo
 
             // Set scene
             Game.ActiveScene = nut;
-            foreach (GameObject go in Game.ActiveScene.GameObjects)
-            {
-                if (go.Name.StartsWith("Index"))
-                {
-                    go.HasGravity = false;
-                }
-            }
 
-            GameObject lastBullet = null;
             // pew pew
             Game.MouseLeftDown += (o, l) =>
             {
@@ -165,11 +153,6 @@ namespace Demo
                 go2.ApplyImpulse(Game.Player.CameraForward * 300f);
                 go2.Material = SMaterial.Create(STexture.Load("texture.png"));
                 Game.ActiveScene.GameObjects.Add(go2);
-                lastBullet = go2;
-            };
-            Game.MouseRightDown += (o, l) =>
-            {
-                Game.SetResolution(SpiritGameResolution.HD);
             };
 
             foreach (GameObject go in Game.ActiveScene.GameObjects)
@@ -177,14 +160,6 @@ namespace Demo
                 if (go.Name.StartsWith("Index"))
                 {
                     go.Force = new SVector3(r.Next(-8, 8), r.Next(0, 8), r.Next(-8, 8));
-                }
-            }
-
-            while(true)
-            {
-                if (lastBullet != null && trigger.IsInside(lastBullet))
-                {
-                    lastBullet.Dispose();
                 }
             }
         }

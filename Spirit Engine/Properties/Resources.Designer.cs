@@ -183,9 +183,9 @@ namespace Realsphere.Spirit.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Drawing.Bitmap.
         /// </summary>
-        internal static System.Drawing.Bitmap SpiritLogo {
+        internal static System.Drawing.Bitmap Spirit_Logo {
             get {
-                object obj = ResourceManager.GetObject("SpiritLogo", resourceCulture);
+                object obj = ResourceManager.GetObject("Spirit Logo", resourceCulture);
                 return ((System.Drawing.Bitmap)(obj));
             }
         }

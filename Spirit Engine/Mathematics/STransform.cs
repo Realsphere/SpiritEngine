@@ -1,5 +1,13 @@
-﻿using Realsphere.Spirit.SceneManagement;
+﻿using Realsphere.Spirit.BulletPhysics;
+using Realsphere.Spirit.Internal;
+using Realsphere.Spirit.Physics;
+using Realsphere.Spirit.SceneManagement;
 using SharpDX;
+using System.Buffers;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Realsphere.Spirit.Mathematics
 {
@@ -17,7 +25,7 @@ namespace Realsphere.Spirit.Mathematics
             set
             {
                 pos = value;
-                if (on != null) on.WorldTransform = Matrix.Translation(value.sharpDXVector) * Matrix.RotationX(rot.X) * Matrix.RotationY(rot.Y) * Matrix.RotationZ(rot.Z) * Matrix.Scaling(scle.X, scle.Y, scle.Z);
+                setData();
             }
         }
         public SQuaternion Rotation
@@ -29,7 +37,7 @@ namespace Realsphere.Spirit.Mathematics
             set
             {
                 rot = value;
-                if (on != null) on.WorldTransform = Matrix.Translation(pos.sharpDXVector) * Matrix.RotationX(value.X) * Matrix.RotationY(value.Y) * Matrix.RotationZ(value.Z) * Matrix.Scaling(scle.X, scle.Y, scle.Z);
+                setData();
             }
         }
         public SVector3 Scale
@@ -41,8 +49,13 @@ namespace Realsphere.Spirit.Mathematics
             set
             {
                 scle = value;
-                if (on != null) on.WorldTransform = Matrix.Translation(pos.sharpDXVector) * Matrix.RotationX(rot.X) * Matrix.RotationY(rot.Y) * Matrix.RotationZ(rot.Z) * Matrix.Scaling(scle.X, scle.Y, scle.Z);
+                setData();
             }
+        }
+
+        void setData()
+        {
+            on.WorldTransform = DXConversionHelper.SNToDX(MatrixHelper.TRS(Position, Rotation, Scale, new()));
         }
 
         internal GameObject on;
