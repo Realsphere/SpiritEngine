@@ -23,7 +23,7 @@ namespace Realsphere.Spirit.RGUI
             context.BeginDraw();
             try
             {
-                Controls.ForEach(x => x.Render(device, context));
+                Controls.ForEach(x => x.Render(device.NativePointer, context.NativePointer));
             }
             catch (InvalidOperationException) { }
             context.EndDraw();

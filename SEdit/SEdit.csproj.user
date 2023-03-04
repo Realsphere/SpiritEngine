@@ -1,0 +1,38 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Compile Update="DrawingEx\ColorManagement\ColorButton.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="DrawingEx\ColorManagement\ColorDialogEx.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="DrawingEx\ColorManagement\ColorFader.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="DrawingEx\ColorManagement\ColorModels\Selection\ColorLabel.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="DrawingEx\ColorManagement\ColorModels\Selection\ColorPicker.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="DrawingEx\ColorManagement\ColorModels\Selection\ColorSelectionFader.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="DrawingEx\ColorManagement\ColorModels\Selection\ColorSelectionPlane.cs">
+      <SubType>Component</SubType>
+    </Compile>
+    <Compile Update="EditorWindow.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="GOSelect.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="GOTransform.cs">
+      <SubType>Form</SubType>
+    </Compile>
+    <Compile Update="Spirit\Internal\SpiritWnd.cs">
+      <SubType>Form</SubType>
+    </Compile>
+  </ItemGroup>
+</Project>

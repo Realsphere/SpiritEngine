@@ -1,26 +1,22 @@
-﻿using BulletSharp;
-using OpenAL;
-using Realsphere.Spirit.BulletPhysics;
+﻿using Realsphere.Spirit.BulletPhysics;
 using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.RenderingCommon;
-using Realsphere.Spirit.RGUI;
 using Realsphere.Spirit.SceneManagement;
-using SharpDX;
-using SharpDX.Direct2D1.Effects;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Drawing;
 using System.IO;
 using System.Linq;
+using System.Numerics;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
-using System.Windows.Media.Media3D;
 using Cursor = System.Windows.Forms.Cursor;
 
 namespace Realsphere.Spirit
@@ -323,7 +319,7 @@ namespace Realsphere.Spirit
         }
 
         /// <summary>
-        /// Opens a Window and starts rendering using Direct3D11.
+        /// Opens a Window and starts rendering using Direct3D9.
         /// </summary>
         [STAThread]
         public static void StartGame(SpiritStartInfo ssi)
@@ -365,7 +361,6 @@ namespace Realsphere.Spirit
                             if (!PhysicsEngine.pause)
                             {
                                 PhysicsEngine.step();
-                                if(Player._ghostObject != null) Console.WriteLine(Player._ghostObject.WorldTransform.Translation);
                             }
                 });
                 t1.SetApartmentState(ApartmentState.STA);
@@ -379,18 +374,29 @@ namespace Realsphere.Spirit
                             if (ActiveScene != null)
                                 Parallel.ForEach(ActiveScene.GameObjects, (x) =>
                                 {
-                                    Vector3[] pts = x.pts.ToArray();
+                                    SharpDX.Vector3[] pts = x.pts.ToArray();
                                     for (int i = 0; i < pts.Length; i++)
                                     {
-                                        var vec = Vector3.Transform(pts[i], x.WorldTransform);
+                                        var vec = SharpDX.Vector3.Transform(pts[i], x.WorldTransform);
                                         pts[i] = new(vec.X, vec.Y, vec.Z);
                                     }
-                                    var bb = BoundingBox.FromPoints(pts);
+                                    var bb = SharpDX.BoundingBox.FromPoints(pts);
                                     x.BoundingBox = SBoundingBox.FDX(bb);
                                 });
                 });
                 t2.SetApartmentState(ApartmentState.STA);
                 t2.Start();
+                var t3 = new Thread(() =>
+                {
+                    while (app == null) { }
+                    while (app.Window == null) { }
+                    while (!app.Window.IsDisposed)
+                    while(AudioMaster.device == IntPtr.Zero || AudioMaster.context == IntPtr.Zero)
+                        while (IsRunning)
+                            AudioMaster.setListenerData();
+                });
+                t3.SetApartmentState(ApartmentState.STA);
+                t3.Start();
                 Logger.Log("DirectX Initializing", LogLevel.Information);
                 appThread = new Thread(() =>
                 {
@@ -427,6 +433,7 @@ namespace Realsphere.Spirit
                 {
                     t1.Join();
                     t2.Join();
+                    t3.Join();
                 };
             }
             catch (Exception ex)
@@ -468,6 +475,12 @@ namespace Realsphere.Spirit
         /// </summary>
         public static void ExitGame()
         {
+            foreach (AudioSource as1 in AudioSource.audioSources)
+            {
+                as1.Stop();
+                as1.Dispose();
+            }
+
             try
             {
                 foreach (var d in ToDispose)
@@ -529,17 +542,17 @@ namespace Realsphere.Spirit
             }
             
             if (OnExit != null) OnExit.Invoke(null, new());
+            AudioMaster.cleanup();
             Environment.Exit(0);
+            Process.GetCurrentProcess().CloseMainWindow();
+            Process.GetCurrentProcess().Close();
+            Process.GetCurrentProcess().Kill();
         }
-
-        static Action<object> UpdateSoundEnginePlayerParams = (object e) =>
-        {
-            AudioMaster.setListenerData();
-        };
 
         [STAThread]
         static void InputThread()
         {
+            DateTime lastJump = DateTime.MinValue;
             while (app == null) { }
             while (app.Window == null) { }
             while (!app.Window.IsDisposed)
@@ -552,38 +565,36 @@ namespace Realsphere.Spirit
                 if (!CameraLookActive) Cursor.Show();
                 float speed = Game.Player.Speed / 50000f;
 
-                //if (Player._character == null) return;
-                //if (Player._ghostObject == null) return;
-                //System.Numerics.Matrix4x4 transform = Player._ghostObject.WorldTransform;
-                //
-                //var forwardDir = new Vector3(transform.M31, transform.M32, transform.M33);
-                //forwardDir.Normalize();
-                //
-                //var upDir = new Vector3(transform.M21, transform.M22, transform.M23);
-                //upDir.Normalize();
-                //
-                //Vector3 walkDirection = Vector3.Zero;
-                //const float walkVelocity = 1.1f * 4.0f;
-                //float walkSpeed = walkVelocity * 10;
-                //
-                //if (Keyboard.IsKeyDown(Key.W))
-                //{
-                //    walkDirection += forwardDir;
-                //}
-                //if (Keyboard.IsKeyDown(Key.S))
-                //{
-                //    walkDirection -= forwardDir;
-                //}
-                //
-                //if (Keyboard.IsKeyDown(Key.Space))
-                //{
-                //    Player._character.Jump();
-                //    return;
-                //}
-                //
-                //var res = walkDirection * walkSpeed;
-                //Player._character.SetWalkDirection(new System.Numerics.Vector3(res.X, res.Y, res.Z));
-                //return;
+                if(Player.rigidBody != null)
+                {
+                    speed = Game.Player.Speed;
+                    SVector3 moveDir = new();
+                    if (Keyboard.IsKeyDown(Key.A))
+                    {
+                        moveDir -= Player.CameraRight * speed;
+                    }
+                    if (Keyboard.IsKeyDown(Key.D))
+                    {
+                        moveDir += Player.CameraRight * speed;
+                    }
+                    if (Keyboard.IsKeyDown(Key.W))
+                    {
+                        moveDir += Player.PlayerForward * speed;
+                    }
+                    if (Keyboard.IsKeyDown(Key.S))
+                    {
+                        moveDir -= Player.PlayerForward * speed;
+                    }
+                    if (Keyboard.IsKeyDown(Key.Space) && Player.Grounded && lastJump.Subtract(DateTime.Now).TotalSeconds < 1)
+                    {
+                        var jumpForce = new Vector3(Player.rigidBody.LinearVelocity.X, Player.JumpVelocity, Player.rigidBody.LinearVelocity.Z);
+                        Player.rigidBody.ApplyCentralForce(jumpForce);
+                    }
+
+                    if (Player.Grounded || Player.AirControl) Player.rigidBody.LinearVelocity = new(moveDir.X, Player.rigidBody.LinearVelocity.Y, moveDir.Z);
+                    continue;
+                }
+
                 if (Keyboard.IsKeyDown(Key.A))
                 {
                     Game.Player.PlayerPosition -= Player.CameraRight * speed;
@@ -600,7 +611,6 @@ namespace Realsphere.Spirit
                 {
                     Game.Player.PlayerPosition -= app.cameraTarget * speed;
                 }
-                ThreadPool.QueueUserWorkItem(UpdateSoundEnginePlayerParams, null, false);
             }
         }
     }

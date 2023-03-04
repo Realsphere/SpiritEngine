@@ -1,0 +1,90 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>GUI - Spirit Documentation</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+
+    <body>
+
+        <div class="sidenav">
+            <button class="dropdown-btn active">Guide
+                <i class="fa fa-caret-down down"></i>
+            </button>
+            <div class="dropdown-container" style="display: block;">
+                <a href="/guides/getting_started.html">Getting Started</a>
+                <a href="/guides/scenes.html">Creating a Scene</a>
+                <a href="/guides/gui.html">Creating a GUI</a>
+                <a href="/guides/audio.html">Spatial Audio</a>
+            </div>
+            <a href="/index.html">Index</a>
+        </div>
+
+        <div class="main">
+            <h2>Spirit GUI (RGUI)</h2>
+            <p>RGUI is heavily inspired by <a href="https://developer.valvesoftware.com/wiki/Category:VGUI" target="_blank">Valve's VGUI</a> and has a similar Interface.</p>
+            <p>Before we go into the coding, lets do some theory first.</p>
+            <p>RGUI has a really simple interface, consists of Controls and the Main class.</p>
+            <p>You can access RGUI with <code>Game.RGUI</code> and add Controls via <code>Game.RGUI.Controls.Add(control);</code></p>
+            <p>There are multiple Controls, you can find all of them in the <code>Realsphere.Spirit.RGUI</code> namespace.</p>
+            <h3>Coding</h3>
+            <p>Creating a Label and adding it to the GUI is really simple.</p>
+            <pre>
+                <code>
+RLabel rl = new()
+{
+    Text = "Hello RGUI!",
+    Color = new SColor(255, 255, 255, 255),
+    FontName = "Arial",
+    FontSize = 18,
+};
+Game.RGUI.Controls.Add(rl);
+                </code>
+            </pre>
+            <p>The Code should be pretty self-explanatory.</p>
+            <p>Now when you run your app, you can see that in the top-left, there is a text saying "Hello RGUI!".</p>
+            <p>All other Control have their respective parameters.</p>
+            <h3>Custom Controls</h3>
+            <p>Maybe you're missing a control.</p>
+            <p>Adding your own is pretty simple.</p>
+            <pre>
+                <code>
+public EventHandler LeftClick;
+public EventHandler RightClick;
+public EventHandler HoverStart;
+public EventHandler HoverEnd;
+public SVector2 Position = new();
+public SVector2 Size = new(1f, 1f)
+
+public abstract void Render(IntPtr device, IntPtr context);
+                </code>
+            </pre>
+            <p>This is the definition of RControl, as you can see, the "Render" function parses 2 IntPtrs, a Direct2D device, and a Direct2D context as an IntPtr.</p>
+            <p>To add your custom control, you will need to use a DirectX wrapper.</p>
+            <p>Spirit uses <a href="https://github.com/sharpdx/SharpDX" target="_blank">SharpDX</a>, but you can use any DirectX wrapper, that supports DirectX 9.</p>
+            <p>There is also managed DirectX (usually located at C:\Windows\Microsoft.NET\DirectX for Managed Code) that only wraps DirectX 9.</p>
+            <p>No matter which one you choose, you will need to create a Direct 2D Device and Direct 2D DeviceContext from a NativePointer.</p>
+        </div>
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    this.children[0].classList.toggle("fa-caret-down");
+                    this.children[0].classList.toggle("fa-caret-up");
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

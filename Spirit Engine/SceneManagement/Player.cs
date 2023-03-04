@@ -1,32 +1,50 @@
 ﻿using BulletSharp;
-using Realsphere.Spirit.BulletPhysics;
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
 using SharpDX;
 using System;
 using System.Numerics;
-using System.Threading;
-using System.Windows.Documents;
 using static Realsphere.Spirit.Game;
 
 namespace Realsphere.Spirit.SceneManagement
 {
     public class Player
     {
+        internal RigidBody rigidBody;
         SVector3 playerpos = new SVector3();
+        public bool Grounded
+        {
+            get
+            {
+                if (rigidBody == null) return false;
+
+                var rbPosition = rigidBody.CenterOfMassPosition;
+
+                var rayStart = rbPosition;
+
+                var rayEnd = rbPosition - new System.Numerics.Vector3(0, PlayerHeight + 0.2f, 0);
+
+                using (ClosestRayResultCallback rayCallback = new ClosestRayResultCallback(ref rayStart, ref rayEnd))
+                {
+                    PhysicsEngine.world.RayTest(rayStart, rayEnd, rayCallback);
+
+                    return rayCallback.HasHit && rayCallback.CollisionObject != rigidBody;
+                }
+            }
+        }
         public SVector3 PlayerPosition
         {
             get
             {
-                return _ghostObject == null ? playerpos : _ghostObject.WorldTransform.Translation;
+                return rigidBody == null ? playerpos : rigidBody.WorldTransform.Translation;
             }
             set
             {
                 playerpos = value;
-                if(_ghostObject != null)
+                if(rigidBody != null)
                 {
                     var org = new System.Numerics.Vector3(value.X, value.Y, value.Z);
-                    _character.Warp(ref org);
+                    rigidBody.Translate(org);
                 }
                 AudioMaster.setListenerData();
                 app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
@@ -48,7 +66,6 @@ namespace Realsphere.Spirit.SceneManagement
                 else return new();
             }
         }
-        internal PairCachingGhostObject PairCachingGhostObject;
         public float RotationX
         {
             get
@@ -91,7 +108,8 @@ namespace Realsphere.Spirit.SceneManagement
         public float PlayerWeight = 2.5f;
         public float Speed = 5f;
         float camf = 100f, camn = 0.001f;
-        public float JumpVelocity = 0.5f;
+        public float JumpVelocity = 1f;
+        public bool AirControl;
         public float CameraFar
         {
             get
@@ -106,6 +124,15 @@ namespace Realsphere.Spirit.SceneManagement
                 app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
             }
         }
+        public SVector3 PlayerForward
+        {
+            get
+            {
+                float h = Game.app.dist;
+                return new SVector3((float)Math.Cos(Game.app.rotationY) * h, 0f, (float)Math.Sin(Game.app.rotationY) * h);
+            }
+        }
+
         public float CameraNear
         {
             get
@@ -121,33 +148,26 @@ namespace Realsphere.Spirit.SceneManagement
             }
         }
 
-        internal PairCachingGhostObject _ghostObject;
-        internal KinematicCharacterController _character;
-
-        public Player()
-        {
-        }
-
         /// <summary>
         /// Will give Physics to the player, if you want a floating camera don't call this.
         /// </summary>
         public void EnablePhysics()
         {
-            throw new NotImplementedException("Sorry, this is currently not available!");
-            var _capsuleShape = new CapsuleShape(PlayerWeight, PlayerHeight);
-            _ghostObject = new PairCachingGhostObject()
-            {
-                CollisionShape = _capsuleShape,
-                CollisionFlags = CollisionFlags.CharacterObject,
-                WorldTransform = Matrix4x4.CreateTranslation(playerpos)
-            };
-            PhysicsEngine.world.AddCollisionObject(_ghostObject, CollisionFilterGroups.CharacterFilter, CollisionFilterGroups.AllFilter);
+            if (PhysicsEngine.world == null) return;
+            PhysicsEngine.pause = true;
+            CollisionShape shape = new CapsuleShape(PlayerRadius, PlayerHeight);
 
-            var up = System.Numerics.Vector3.UnitY;
-            _character = new KinematicCharacterController(_ghostObject, _capsuleShape, 20f, ref up);
-            PhysicsEngine.world.AddAction(_character);
+            RigidBody body = new RigidBody(
+                                    new RigidBodyConstructionInfo(
+                                        PlayerWeight,
+                                        null,
+                                        shape, shape.CalculateLocalInertia(PlayerWeight)));
 
-            _ghostObject.WorldTransform = Matrix4x4.CreateTranslation(playerpos);
+            body.WorldTransform = Matrix4x4.CreateTranslation(PlayerPosition);
+            rigidBody = body;
+            PhysicsEngine.world.AddRigidBody(body);
+            body.Gravity = new System.Numerics.Vector3(0f, -9.81f, 0f);
+            PhysicsEngine.pause = false;
         }
 
         /// <summary>
@@ -155,7 +175,12 @@ namespace Realsphere.Spirit.SceneManagement
         /// </summary>
         public void DisablePhysics()
         {
-            throw new NotImplementedException("Sorry, this is currently not available!");
+            PhysicsEngine.pause = true;
+            PhysicsEngine.world.RemoveRigidBody(rigidBody);
+            rigidBody.CollisionShape.Dispose();
+            rigidBody.Dispose();
+            rigidBody = null;
+            PhysicsEngine.pause = false;
         }
     }
 }

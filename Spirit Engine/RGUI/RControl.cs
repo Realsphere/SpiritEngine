@@ -18,6 +18,6 @@ namespace Realsphere.Spirit.RGUI
         public SVector2 Position = new();
         public SVector2 Size = new(1f, 1f);
 
-        public abstract void Render(Device device, DeviceContext context);
+        public abstract void Render(IntPtr device, IntPtr context);
     }
 }

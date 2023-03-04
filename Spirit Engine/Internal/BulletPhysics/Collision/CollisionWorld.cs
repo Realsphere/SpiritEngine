@@ -426,6 +426,7 @@ namespace BulletSharp
 
 		public virtual bool NeedsCollision(BroadphaseProxy proxy0)
 		{
+			if (proxy0 == null) return false;
 			return btCollisionWorld_RayResultCallbackWrapper_needsCollision(Native, proxy0.Native);
 		}
 

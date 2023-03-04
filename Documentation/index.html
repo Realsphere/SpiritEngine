@@ -1,31 +1,49 @@
+<!DOCTYPE html>
 <html>
     <head>
-        <meta name="title" content="Realsphere Spirit Documentation">
-        <meta name="description" content="Realsphere Spirit™ is a free 3D / 2D Game engine.">
-        <meta name="keywords" content="spirit, documentation, spirit docs, spirit documentation, spirit doc, realsphere, c# docs, game development, game engine, game dev, game engine">
-        <meta name="robots" content="index, follow">
-        <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
-        <meta name="language" content="English">
-        <meta name="revisit-after" content="14 days">
-        <link rel="stylesheet" href="./style.css">
-        <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600&display=swap">
         <title>Index - Spirit Documentation</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     </head>
+
     <body>
+
         <div class="sidenav">
-            <a href="./guide">Guide</a>
-            <a href="./qrh.html">QRH (Quick Reference Handbook)</a>
-            <a href="./examples.html">Examples</a>
-            <a href="./improvethedocs.html">Improve the Documentation</a>
-        </div>
-        <div class="main">
-            <h1>Welcome to the Spirit Documentation!</h1>
-            <h3>We try to keep the Documentation up to date, and easy to understand.</h3>
-            <div style="line-height: 2vh">
-                <h2>Want to get started with Spirit?</h2>
-                <h3><div style="width: 1vw; display: inline-block;"></div><a style="color: white;" href="./guide/">Check out our guide!</a></h3>
+            <button class="dropdown-btn">Guide
+                <i class="fa fa-caret-down down"></i>
+            </button>
+            <div class="dropdown-container" style="display: none;">
+                <a href="/guides/getting_started.html">Getting Started</a>
+                <a href="/guides/scenes.html">Creating a Scene</a>
+                <a href="/guides/gui.html">Creating a GUI</a>
+                <a href="/guides/audio.html">Spatial Audio</a>
             </div>
-            <h3>Missing something? <a style="color: white;" href="./improvethedocs.html">Tell us what!</a></h3>
+            <a href="/index.html">Index</a>
         </div>
+
+        <div class="main">
+            <h2>Spirit Documentation WIP</h2>
+            <p>Welcome to the Spirit Documentation!</p>
+        </div>
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    this.children[0].classList.toggle("fa-caret-down");
+                    this.children[0].classList.toggle("fa-caret-up");
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
     </body>
 </html>

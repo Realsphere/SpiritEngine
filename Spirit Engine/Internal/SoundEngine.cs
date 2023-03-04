@@ -14,6 +14,7 @@ namespace Realsphere.Spirit
     public class AudioSource : IDisposable
     {
         internal audiosource src;
+        internal static List<AudioSource> audioSources = new();
 
         /// <summary>
         /// Volume of the Audio Source.
@@ -97,6 +98,7 @@ namespace Realsphere.Spirit
         public AudioSource(string filename)
         {
             src = new(filename);
+            audioSources.Add(this);
         }
 
         /// <summary>
@@ -108,7 +110,7 @@ namespace Realsphere.Spirit
         }
 
         /// <summary>
-        /// Play / Resume the Audio Source, but its looping.
+        /// Play / Resume the Audio Source, and start looping.
         /// </summary>
         public void PlayLooping()
         {
@@ -250,8 +252,8 @@ namespace Realsphere.Spirit
     internal class AudioMaster
     {
         static List<uint> buffers = new();
-        static IntPtr device;
-        static IntPtr context;
+        internal static IntPtr device;
+        internal static IntPtr context;
 
         public static void init()
         {

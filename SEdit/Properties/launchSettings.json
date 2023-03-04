@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "SEdit": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

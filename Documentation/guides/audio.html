@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Audio - Spirit Documentation</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+
+    <body>
+
+        <div class="sidenav">
+            <button class="dropdown-btn active">Guide
+                <i class="fa fa-caret-down down"></i>
+            </button>
+            <div class="dropdown-container" style="display: block;">
+                <a href="/guides/getting_started.html">Getting Started</a>
+                <a href="/guides/scenes.html">Creating a Scene</a>
+                <a href="/guides/gui.html">Creating a GUI</a>
+                <a href="/guides/audio.html">Spatial Audio</a>
+            </div>
+            <a href="/index.html">Index</a>
+        </div>
+
+        <div class="main">
+            <h2>Spirit Audio</h2>
+            <p>Spirit includes an OpenAL and SndFile wrapper, and supports <a href="https://en.wikipedia.org/wiki/3D_audio_effect" target="_blank">Spatial Audio</a>.</p>
+            <h3>Step 1 - Loading a WAV File</h3>
+            <p>Loading a wave file in Spirit is pretty easy, this nice little one-liner loads a WAV file and creates an AudioSource: <pre><code>AudioSource source = new("sound.wav");</code></pre></p>
+            <p>Pretty easy right? Well this line of code, loads a Wave File, and creates the OpenAL buffers.</p>
+            <p>All AudioSources have a Position, Volume, Pitch and a Velocity parameter.</p>
+            <p>The Listener position will always be the Player's position.</p>
+            <h3>Step 2 - Playing the Audio Source</h3>
+            <p>Now of course, if we want to hear something, we have to start the audio playback.</p>
+            <p>There are 4 methods regarding the Audio Playback: Play, PlayLooping, Stop, Pause</p>
+            <p>Play: Resumes / Plays the Audio Source.</p>
+            <p>PlayLooping: Loops the Audio Source.</p>
+            <p>Stop: Stops the Audio Source.</p>
+            <p>Pause: Pauses the Audio Source.</p>
+            <p>If you want to learn more about OpenAL, LibSndFile or Spatial Audio, here are some resources:</p>
+            <p><a href="https://www.openal.org/" target="_blank">OpenAL</a></p>
+            <p><a href="https://en.wikipedia.org/wiki/Libsndfile" target="_blank">LibSndFile</a></p>
+            <p><a href="https://en.wikipedia.org/wiki/3D_audio_effect" target="_blank">Spatial Audio</a></p>
+        </div>
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    this.children[0].classList.toggle("fa-caret-down");
+                    this.children[0].classList.toggle("fa-caret-up");
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

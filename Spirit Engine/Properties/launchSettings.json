@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "Spirit Engine": {
+      "commandName": "Project",
+      "nativeDebugging": false
+    }
+  }
+}

@@ -28,10 +28,13 @@ namespace Realsphere.Spirit.RenderingCommon
         /// The list of feature levels to accept
         /// </summary>
         internal FeatureLevel[] Direct3DFeatureLevels = new FeatureLevel[] {
-            FeatureLevel.Level_11_1, 
-            FeatureLevel.Level_11_0,
+            //FeatureLevel.Level_11_1, 
+            //FeatureLevel.Level_11_0,
             //FeatureLevel.Level_10_1,
-            //FeatureLevel.Level_10_0
+            //FeatureLevel.Level_10_0,
+            FeatureLevel.Level_9_1,
+            FeatureLevel.Level_9_2,
+            FeatureLevel.Level_9_3,
         };
 
         /// <summary>
@@ -138,10 +141,6 @@ namespace Realsphere.Spirit.RenderingCommon
             // Bgra performs better especially with Direct2D software
             // render targets
             var creationFlags = DeviceCreationFlags.BgraSupport;
-#if DEBUG
-            // Enable D3D device debug layer
-            creationFlags |= DeviceCreationFlags.Debug;
-#endif
 
             // Retrieve the Direct3D 11.1 device and device context
             using (var device = new Device(DriverType.Hardware, creationFlags, Direct3DFeatureLevels))
@@ -155,11 +154,7 @@ namespace Realsphere.Spirit.RenderingCommon
 
             #region Create Direct2D device and context
 
-#if DEBUG
-            var debugLevel = SharpDX.Direct2D1.DebugLevel.Information;
-#else
             var debugLevel = SharpDX.Direct2D1.DebugLevel.None;
-#endif
 
             // Allocate new references
             d2dFactory = ToDispose(new SharpDX.Direct2D1.Factory1(SharpDX.Direct2D1.FactoryType.SingleThreaded, debugLevel));
@@ -175,6 +170,7 @@ namespace Realsphere.Spirit.RenderingCommon
             // Create Direct2D context
             d2dContext = ToDispose(new SharpDX.Direct2D1.DeviceContext(d2dDevice, SharpDX.Direct2D1.DeviceContextOptions.None));
             #endregion
+
         }
     }
 }

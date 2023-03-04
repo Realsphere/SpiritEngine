@@ -1,0 +1,72 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Getting Started - Spirit Documentation</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+
+    <body>
+
+        <div class="sidenav">
+            <button class="dropdown-btn active">Guide
+                <i class="fa fa-caret-down down"></i>
+            </button>
+            <div class="dropdown-container" style="display: block;">
+                <a href="/guides/getting_started.html">Getting Started</a>
+                <a href="/guides/scenes.html">Creating a Scene</a>
+                <a href="/guides/gui.html">Creating a GUI</a>
+                <a href="/guides/audio.html">Spatial Audio</a>
+            </div>
+            <a href="/index.html">Index</a>
+        </div>
+
+        <div class="main">
+            <h2>Getting Started</h2>
+            <p>This guide will get you started with a Spirit project!</p>
+            <h3>Step 1 - Download Spirit</h3>
+            <p>This is the easiest Step, navigate over to the <a href="https://realsphere.org/spirit" target="_blank" rel="noopener noreferrer">Spirit main page</a> and click on the Download button.</p>
+            <p>Now a .ZIP downloaded, inside of this ZIP file, there is a file called "rsengine.dll", extract this file.</p>
+            <h3>Step 2 - Create a new Project</h3>
+            <p>We'll be using Visual Studio 2022 for all of our Guides, it is recommended you use it aswell.</p>
+            <p>Create a new .NET 6.0 C# Project, and add "rsengine.dll" as a reference.</p>
+            <p>Now you can use Spirit inside of your Project!</p>
+            <h3>Step 3 - Using Spirit</h3>
+            <p>To use Spirit you have to call <code>Game.StartGame</code> in your Main method.</p>
+            <p>Example of using this:
+                <pre><code>
+Game.StartGame(new SpiritStartInfo()
+{
+    Company = "Realsphere Entertainment",
+    CompanyLogo = "base 64 of your company logo",
+    ShowFPS = true,
+    FullScreen = false,
+    GameIcon = "base 64 of your game icon",
+    GameName = "Demo",
+    Resolution = SpiritGameResolution.I4K
+});
+                </code></pre>
+            </p>
+        </div>
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    this.children[0].classList.toggle("fa-caret-down");
+                    this.children[0].classList.toggle("fa-caret-up");
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

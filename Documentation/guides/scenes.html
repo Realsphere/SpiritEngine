@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Creating a Scene - Spirit Documentation</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+
+    <body>
+
+        <div class="sidenav">
+            <button class="dropdown-btn active">Guide
+                <i class="fa fa-caret-down down"></i>
+            </button>
+            <div class="dropdown-container" style="display: block;">
+                <a href="/guides/getting_started.html">Getting Started</a>
+                <a href="/guides/scenes.html">Creating a Scene</a>
+                <a href="/guides/gui.html">Creating a GUI</a>
+                <a href="/guides/audio.html">Spatial Audio</a>
+            </div>
+            <a href="/index.html">Index</a>
+        </div>
+
+        <div class="main">
+            <h2>Creating a Scene</h2>
+            <p>With this guide you will get your first Scene going!</p>
+            <h3>Step 1 - Creating a Scene object</h3>
+            <p>To get started with a Scene, you first have to create a Scene object.</p>
+            <p>You can do this by creating an instance of the Scene struct.</p>
+            <pre><code>
+Scene scene = new Scene();
+            </code></pre>
+            <h3>Step 2 - Creating a Game Object</h3>
+            <p>To add a GameObject to your scene, you have to create it.</p>
+            <pre><code>
+GameObject gameObject = GameObject.CreateUsingMesh(StandarizedShapes.Cube, "Cube 1");
+gameObject.HasCollision = false;
+gameObject.HasGravity = false;
+gameObject.Weight = 0f;
+gameObject.Material = new SMaterial()
+{
+    Ambient = new SColor(255f, 255f, 255f, 255f),
+    Diffuse = new SColor(255f, 255f, 255f, 255f),
+    Emissive = new SColor(255f, 255f, 255f, 0f),
+    Specular = new SColor(255f, 255f, 255f, 255f),
+    SpecularPower = 20f
+};
+            </code></pre>
+            <p>Okay, thats quite some code.</p>
+            <p>So what we're doing, is creating a GameObject with a Mesh (StandarizedShapes.Cube), with the name "Cube 1"</p>
+            <p>Then we remove Collision and Gravity from the Object.</p>
+            <p>Afterwards we make the Object static by setting its Weight to 0.</p>
+            <p>Then we set the Objects Material to a White material.</p>
+            <p>If we want texture on our cube, we can change the code to this:</p>
+            <pre><code>
+GameObject gameObject = GameObject.CreateUsingMesh(StandarizedShapes.Cube, "Cube 1");
+gameObject.HasCollision = false;
+gameObject.HasGravity = false;
+gameObject.Weight = 0f;
+gameObject.Material = SMaterial.Create(STexture.Load("texture.png"));
+            </code></pre>
+            <p>This requires you to have a texture called "texture.png" in your build directory.</p>
+            <h3>Step 3 - Adding a Game Object</h3>
+            <p>Now to add our game object to the Scene, we can just call <pre><code>scene.GameObjects.Add(gameObject);</code></pre></p>
+            <h3>Step 4 - Setting the active Scene</h3>
+            <p>We can set the active Scene like this: 
+                <pre><code>
+Game.ActiveScene = scene;
+                </code></pre></p>
+                <p>This will set the physics engine's Scene, and the renderer's Scene.</p>
+        </div>
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    this.children[0].classList.toggle("fa-caret-down");
+                    this.children[0].classList.toggle("fa-caret-up");
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>

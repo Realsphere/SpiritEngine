@@ -15,7 +15,16 @@ namespace Realsphere.Spirit.RGUI
         public bool Round = false;
         public float RoundRadius = 0f;
 
-        public override void Render(Device device, DeviceContext context)
+        public override void Render(IntPtr device, IntPtr context)
+        {
+            Device d = new(device);
+            DeviceContext c = new(context);
+            Render(d, c);
+            d.Dispose();
+            c.Dispose();
+        }
+
+        internal void Render(Device device, DeviceContext context)
         {
             SolidColorBrush scb = new(context, Color.sharpdxcolor);
 

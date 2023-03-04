@@ -239,13 +239,8 @@ namespace BulletSharp
 		public int StepSimulation(float timeStep, int maxSubSteps = 1, float fixedTimeStep = 1.0f / 60.0f)
 		{
 			if (PhysicsEngine.pause) return 0;
-			return btDynamicsWorld_stepSimulation(Native, timeStep, maxSubSteps,
-				fixedTimeStep);
-		}
-
-		public void SynchronizeMotionStates()
-		{
-			btDynamicsWorld_synchronizeMotionStates(Native);
+            return btDynamicsWorld_stepSimulation(Native, timeStep, maxSubSteps,
+                fixedTimeStep);
 		}
 
 		public ConstraintSolver ConstraintSolver
