@@ -124,9 +124,6 @@
   <data name="d3dcsx_46" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\d3dcsx_46.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="PhysicsDebug" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PhysicsDebug.hlsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="SDPX" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\SDPX.hlsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -159,9 +156,6 @@
   </data>
   <data name="vorbisenc" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\vorbisenc.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="imgui_daw32_native" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\imgui_daw32_native.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="libsndfile-11" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\libsndfile-1.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>

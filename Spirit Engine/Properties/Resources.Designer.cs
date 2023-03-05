@@ -93,16 +93,6 @@ namespace Realsphere.Spirit.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
         /// </summary>
-        internal static byte[] imgui_daw32_native {
-            get {
-                object obj = ResourceManager.GetObject("imgui_daw32_native", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
-        /// </summary>
         internal static byte[] libbulletc {
             get {
                 object obj = ResourceManager.GetObject("libbulletc", resourceCulture);
@@ -136,16 +126,6 @@ namespace Realsphere.Spirit.Properties {
         internal static byte[] ogg {
             get {
                 object obj = ResourceManager.GetObject("ogg", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
-        /// </summary>
-        internal static byte[] PhysicsDebug {
-            get {
-                object obj = ResourceManager.GetObject("PhysicsDebug", resourceCulture);
                 return ((byte[])(obj));
             }
         }
