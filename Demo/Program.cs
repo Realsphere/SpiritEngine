@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Xml.Linq;
 using Newtonsoft.Json;
 using Realsphere.Spirit;
 using Realsphere.Spirit.DeveloperConsole;
@@ -156,6 +157,7 @@ namespace Demo
             };
             Game.MouseRightDown += (o, l) =>
             {
+                Game.Player.PlayerHeight = 1.75f;
                 Game.Player.EnablePhysics();
             };
 
@@ -166,6 +168,7 @@ namespace Demo
                     go.Force = new SVector3(r.Next(-8, 8), r.Next(0, 8), r.Next(-8, 8));
                 }
             }
+            Console.WriteLine(Game.ActiveScene.GameObjects[3000].Name + "'s center is " + Game.ActiveScene.GameObjects[3000].Center + ", position is " + Game.ActiveScene.GameObjects[3000].Transform.Position);
         }
     }
 }

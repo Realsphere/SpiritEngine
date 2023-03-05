@@ -25,7 +25,6 @@ namespace Realsphere.Spirit.Mathematics
             set
             {
                 pos = value;
-                setData();
             }
         }
         public SQuaternion Rotation
@@ -37,7 +36,6 @@ namespace Realsphere.Spirit.Mathematics
             set
             {
                 rot = value;
-                setData();
             }
         }
         public SVector3 Scale
@@ -49,13 +47,7 @@ namespace Realsphere.Spirit.Mathematics
             set
             {
                 scle = value;
-                setData();
             }
-        }
-
-        void setData()
-        {
-            on.WorldTransform = DXConversionHelper.SNToDX(MatrixHelper.TRS(Position, Rotation, Scale, new()));
         }
 
         internal GameObject on;

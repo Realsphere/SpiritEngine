@@ -9,6 +9,10 @@ using Realsphere.Spirit.Internal;
 using BulletSharp;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Printing;
+using Realsphere.Spirit.BulletPhysics;
+using SharpDX.Direct2D1.Effects;
+using System.Windows.Media.Imaging;
 
 namespace Realsphere.Spirit.SceneManagement
 {
@@ -37,6 +41,20 @@ namespace Realsphere.Spirit.SceneManagement
         }
         internal MeshRenderer renderer;
         internal RigidBody rig;
+        public SVector3 Center
+        {
+            get
+            {
+                Vector3 center = Vector3.Zero;
+                foreach (Vector3 vertex in pts)
+                {
+                    center += vertex;
+                }
+                center /= pts.Count;
+                center += Transform.Position.sharpDXVector;
+                return new(center.X, center.Y, center.Z);
+            }
+        }
         public SModel Model
         {
             get
@@ -50,7 +68,20 @@ namespace Realsphere.Spirit.SceneManagement
             }
         }
         public STransform Transform { get; }
-        internal Matrix WorldTransform;
+        internal Matrix WorldTransform
+        {
+            get
+            {
+                return DXConversionHelper.SNToDX(MatrixHelper.TRS(Transform.Position, Transform.Rotation, Transform.Scale, Center));
+            }
+            set
+            {
+                value.Decompose(out Vector3 scale, out Quaternion rot, out Vector3 trans);
+                Transform.Position = new(trans.X, trans.Y, trans.Z);
+                Transform.Rotation = new(rot.X, rot.Y, rot.Z, rot.W);
+                Transform.Scale = new(scale.X, scale.Y, scale.Z);
+            }
+        }
         float weight = 0f;
         float frict = 0.4f;
         float restit = 1f;
@@ -126,6 +157,8 @@ namespace Realsphere.Spirit.SceneManagement
 
         public void InitPhysics()
         {
+            if (rig != null) return;
+            while (PhysicsEngine.stepping) { }
             PhysicsEngine.addToScene(this);
         }
 
@@ -166,12 +199,14 @@ namespace Realsphere.Spirit.SceneManagement
             mesh.World = Matrix.Identity;
             go.renderer = mesh;
             go.renderer.objectOn = go;
-            go.Model = model;   
+            go.Model = model;
+            go.pts = model.Vertices.Select(x => x.sharpDXVector).ToList();
             return go;
         }
 
         public void Dispose()
         {
+            while (PhysicsEngine.stepping) { }
             PhysicsEngine.world.RemoveRigidBody(rig);
             Game.ActiveScene.GameObjects.Remove(this);
             rig.CollisionShape.Dispose();

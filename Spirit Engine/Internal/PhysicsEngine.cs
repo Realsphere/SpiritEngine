@@ -16,6 +16,7 @@ using Buffer = SharpDX.Direct3D11.Buffer;
 using SharpDX.Direct3D;
 using SharpDX.Toolkit.Graphics;
 using System.Text.Json;
+using System.Printing;
 
 namespace Realsphere.Spirit.Internal
 {
@@ -317,52 +318,9 @@ namespace Realsphere.Spirit.Internal
             get => go.PWorldTransform;
             set
             {
-                go.Transform.Position = value.TranslationVector;
-            }
-        }
-
-        public override void GetWorldTransform(out System.Numerics.Matrix4x4 worldTrans)
-        {
-            worldTrans = new System.Numerics.Matrix4x4(
-                MSWorldTransform.M11,
-                MSWorldTransform.M12,
-                MSWorldTransform.M13,
-                MSWorldTransform.M14,
-                MSWorldTransform.M21,
-                MSWorldTransform.M22,
-                MSWorldTransform.M23,
-                MSWorldTransform.M24,
-                MSWorldTransform.M31,
-                MSWorldTransform.M32,
-                MSWorldTransform.M33,
-                MSWorldTransform.M34,
-                MSWorldTransform.M41,
-                MSWorldTransform.M42,
-                MSWorldTransform.M43,
-                MSWorldTransform.M43);
-        }
-
-        public override void SetWorldTransform(ref System.Numerics.Matrix4x4 worldTrans)
-        {
-            MSWorldTransform = DXConversionHelper.SNToDX(worldTrans);
-        }
-    }
-
-    internal class SFrozenMotionState : MotionState
-    {
-        internal GameObject go;
-        internal SFrozenMotionState(GameObject go)
-        {
-            this.go = go;
-        }
-
-        Matrix MSWorldTransform
-        {
-            get => go.PWorldTransform;
-            set
-            {
-                value.Decompose(out _, out SharpDX.Quaternion rot, out _);
-                go.Transform.Position = value.TranslationVector;
+                value.Decompose(out DXVector3 scale, out SharpDX.Quaternion rot, out DXVector3 trans);
+                go.Transform.Position = trans;
+                go.Transform.Scale = scale;
                 go.Transform.Rotation = new(rot.X, rot.Y, rot.Z, rot.W);
             }
         }
@@ -403,7 +361,7 @@ namespace Realsphere.Spirit.Internal
         static BroadphaseInterface broadphase = new DbvtBroadphase();
         static Stopwatch simTime = new Stopwatch();
         internal static float time, timeStep;
-        internal static bool pause;
+        internal static bool pause, stepping;
 
         internal static DynamicsWorld DW
         {
@@ -454,7 +412,9 @@ namespace Realsphere.Spirit.Internal
             }
             timeStep = (float)simTime.Elapsed.TotalSeconds - time;
             time = (float)simTime.Elapsed.TotalSeconds;
+            stepping = true;
             if (!pause) world.StepSimulation(timeStep);
+            stepping = false;
         }
 
         internal static CollisionShape GetObjShape(GameObject go)
@@ -483,6 +443,7 @@ namespace Realsphere.Spirit.Internal
         internal static void addToScene(GameObject go)
         {
             if (world == null) return;
+            while(stepping) { }
             pause = true;
             CollisionShape shape = GetObjShape(go);
 
@@ -507,6 +468,7 @@ namespace Realsphere.Spirit.Internal
 
         internal static void setScene(Scene scene)
         {
+            while (stepping) { }
             pause = true;
             foreach (GameObject go in scene.GameObjects)
             {
@@ -518,6 +480,7 @@ namespace Realsphere.Spirit.Internal
 
         internal static void drop()
         {
+            while (stepping) { }
             world.Dispose();
             conf.Dispose();
             broadphase.Dispose();
