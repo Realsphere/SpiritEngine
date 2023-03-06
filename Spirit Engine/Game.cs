@@ -552,9 +552,9 @@ namespace Realsphere.Spirit
         [STAThread]
         static void InputThread()
         {
-            DateTime lastJump = DateTime.Now;
             while (app == null) { }
             while (app.Window == null) { }
+
             while (!app.Window.IsDisposed)
             {
                 if (DevConsole.show)
@@ -584,11 +584,6 @@ namespace Realsphere.Spirit
                     if (Keyboard.IsKeyDown(Key.S))
                     {
                         moveDir -= Player.PlayerForward * speed;
-                    }
-                    if (Keyboard.IsKeyDown(Key.Space) && Player.Grounded)
-                    {
-                        var jumpForce = new Vector3(Player.rigidBody.LinearVelocity.X, Player.JumpVelocity, Player.rigidBody.LinearVelocity.Z);
-                        Player.rigidBody.ApplyCentralForce(jumpForce);
                     }
 
                     if (Player.Grounded || Player.AirControl) Player.rigidBody.LinearVelocity = new(moveDir.X, Player.rigidBody.LinearVelocity.Y, moveDir.Z);

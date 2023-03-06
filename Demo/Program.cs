@@ -44,6 +44,12 @@ namespace Demo
             Trigger trigger = new(new(), new(2f, 2f, 2f), SQuaternion.Identity);
             nut.Triggers.Add(trigger);
 
+            Game.RGUI.Controls.Add(new RImage()
+            {
+                Image = STexture.Load("texture.png"),
+
+            });
+
             AudioSource source = new("whoosh.wav");
 
             // Cube 1

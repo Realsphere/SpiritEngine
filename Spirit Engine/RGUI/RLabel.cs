@@ -15,13 +15,9 @@ namespace Realsphere.Spirit.RGUI
         public float FontSize = 12f;
         public SColor Color = SColor.White;
 
-        public override void Render(IntPtr device, IntPtr context)
+        public override void Render()
         {
-            Device d = new(device);
-            DeviceContext c = new(context);
-            Render(d, c);
-            d.Dispose();
-            c.Dispose();
+            Render(Game.deviceManager.Direct2DDevice, Game.deviceManager.Direct2DContext);
         }
 
         internal void Render(Device device, DeviceContext context)

@@ -109,7 +109,6 @@ namespace Realsphere.Spirit
             toSetSize = new Size(w, h);
             Logger.Log("Creating DirectX Device and Context", LogLevel.Information);
             DeviceManager.Initialize();
-            Game.RGUI = new RGUI.RGUI(DeviceManager.Direct2DDevice);
 
             _window.GotFocus += (s, e) =>
             {
@@ -168,9 +167,17 @@ namespace Realsphere.Spirit
             {
                 Game.ExitGame();
             };
+            DateTime dt = DateTime.Now;
             _window.KeyDown += (o, e) =>
             {
                 if (!keysDown.Contains(e.KeyCode)) keysDown.Add(e.KeyCode);
+                if (e.KeyCode != Keys.Space) return;
+                if (!Game.Player.Grounded) return;
+                if (dt.Subtract(DateTime.Now).TotalSeconds > -1) return;
+
+                var jumpForce = new System.Numerics.Vector3(Game.Player.rigidBody.LinearVelocity.X, Game.Player.JumpVelocity, Game.Player.rigidBody.LinearVelocity.Z);
+                Game.Player.rigidBody.LinearVelocity = (jumpForce * 5f);
+                dt = DateTime.Now;
             };
             _window.KeyUp += (o, e) =>
             {

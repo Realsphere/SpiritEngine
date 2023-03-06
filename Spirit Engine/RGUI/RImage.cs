@@ -13,18 +13,15 @@ namespace Realsphere.Spirit.RGUI
         public STexture Image;
         public float Opacity = 1f;
 
-        public override void Render(IntPtr device, IntPtr context)
+        public override void Render()
         {
-            Device d = new(device);
-            DeviceContext c = new(context);
-            Render(d, c);
-            d.Dispose();
-            c.Dispose();
+            Render(Game.deviceManager.Direct2DDevice, Game.deviceManager.Direct2DContext);
         }
 
         internal void Render(Device device, DeviceContext context)
         {
-            if(Image != null && Image.d2dtext != null) context.DrawBitmap(Image.d2dtext, Opacity, BitmapInterpolationMode.Linear);
+            if(Image != null && Image.d2dtext != null) 
+                context.DrawBitmap(Image.d2dtext, Opacity, BitmapInterpolationMode.Linear);
         }
     }
 }

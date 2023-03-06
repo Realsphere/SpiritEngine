@@ -170,7 +170,7 @@ namespace Realsphere.Spirit.RenderingCommon
             // Create Direct2D context
             d2dContext = ToDispose(new SharpDX.Direct2D1.DeviceContext(d2dDevice, SharpDX.Direct2D1.DeviceContextOptions.None));
             #endregion
-
+            Game.RGUI = new RGUI.RGUI(d2dDevice);
         }
     }
 }
