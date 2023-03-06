@@ -471,7 +471,7 @@ namespace Realsphere.Spirit.RenderingCommon
                     resolvedDesc.BindFlags = BindFlags.ShaderResource;
                     resolvedDesc.SampleDescription = new SharpDX.DXGI.SampleDescription(1, 0);
 
-                    // if depth stencil needs to be typeless
+                    // depth stencil needs to be typeless
                     if (resolvedDesc.Format == SharpDX.DXGI.Format.D24_UNorm_S8_UInt)
                         resolvedDesc.Format = SharpDX.DXGI.Format.R24G8_Typeless;
 

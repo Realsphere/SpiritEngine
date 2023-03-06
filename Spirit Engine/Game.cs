@@ -400,18 +400,22 @@ namespace Realsphere.Spirit
                 Logger.Log("DirectX Initializing", LogLevel.Information);
                 appThread = new Thread(() =>
                 {
+#if SpiritDebug
                     try
                     {
+#endif
                         app = new SpiritD3DApp(ssi.FullScreen, ssi.GameName, ssi.Resolution.Width, ssi.Resolution.Height, ssi.CompanyLogo.Base64StringToBitmap(), ssi.GameIcon.Base64StringToBitmap());
                         app.Window.FormClosed += Window_FormClosed;
                         app.VSync = ssi.VSync;
                         app.Initialize();
                         app.Run();
+#if SpiritDebug
                     }
-                    catch(Exception ex)
+                    catch (Exception ex)
                     {
                         Throw(ex);
                     }
+#endif
                 });
                 appThread.SetApartmentState(ApartmentState.STA);
                 appThread.Start();
@@ -569,19 +573,19 @@ namespace Realsphere.Spirit
                 {
                     speed = Game.Player.Speed;
                     SVector3 moveDir = new();
-                    if (Keyboard.IsKeyDown(Key.A))
+                    if (app.keysDown.Contains(Keys.A))
                     {
                         moveDir -= Player.CameraRight * speed;
                     }
-                    if (Keyboard.IsKeyDown(Key.D))
+                    if (app.keysDown.Contains(Keys.D))
                     {
                         moveDir += Player.CameraRight * speed;
                     }
-                    if (Keyboard.IsKeyDown(Key.W))
+                    if (app.keysDown.Contains(Keys.W))
                     {
                         moveDir += Player.PlayerForward * speed;
                     }
-                    if (Keyboard.IsKeyDown(Key.S))
+                    if (app.keysDown.Contains(Keys.S))
                     {
                         moveDir -= Player.PlayerForward * speed;
                     }

@@ -18,6 +18,7 @@ using SharpDX.Toolkit.Graphics;
 using System.Text.Json;
 using System.Printing;
 using Realsphere.Spirit.Mathematics;
+using System.Windows;
 
 namespace Realsphere.Spirit.Internal
 {
@@ -444,8 +445,8 @@ namespace Realsphere.Spirit.Internal
         internal static void addToScene(GameObject go)
         {
             if (world == null) return;
-            while(stepping) { }
             pause = true;
+            while(stepping) { }
             CollisionShape shape = GetObjShape(go);
 
             go.renderer.World = Matrix.Identity;

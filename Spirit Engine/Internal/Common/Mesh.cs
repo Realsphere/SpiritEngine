@@ -38,7 +38,7 @@ namespace Realsphere.Spirit.RenderingCommon
             public uint StartIndex;
             public uint PrimCount;
         };
-        
+
         [StructLayout(LayoutKind.Sequential, Pack = 1)]
         public struct Material
         {
@@ -149,7 +149,7 @@ namespace Realsphere.Spirit.RenderingCommon
             {
                 Vector3 n = this.FaceNormal;
                 float max = Math.Max(Math.Abs(n.X), Math.Max(Math.Abs(n.Y), Math.Abs(n.Y)));
-                float x,y,z;
+                float x, y, z;
                 x = Math.Abs(n.X) < max ? 0.0f : 1.0f;
                 y = Math.Abs(n.Y) < max ? 0.0f : 1.0f;
                 z = Math.Abs(n.Z) < max ? 0.0f : 1.0f;
@@ -242,7 +242,7 @@ namespace Realsphere.Spirit.RenderingCommon
 
             // open the mesh file
             Stream fs = null;
-            try 
+            try
             {
 #if NETFX_CORE
                 if (!Path.IsPathRooted(meshFilename))
@@ -268,7 +268,7 @@ namespace Realsphere.Spirit.RenderingCommon
                     }
                 }
             }
-            catch (Exception e) 
+            catch (Exception e)
             {
                 Debug.WriteLine("Unable to load mesh file '" + meshFilename + "': " + e.ToString());
             }
@@ -308,7 +308,6 @@ namespace Realsphere.Spirit.RenderingCommon
         #region CMO file structure
         /*
          .CMO files
-
          UINT - Mesh count
          { [Mesh count]
               UINT - Length of name
@@ -382,7 +381,7 @@ namespace Realsphere.Spirit.RenderingCommon
         {
             // Create new mesh object
             Mesh mesh = new Mesh();
-                
+
             //      UINT - Length of name
             //      wchar_t[] - Name of mesh (if length > 0)
             //      UINT - Material count
@@ -404,8 +403,8 @@ namespace Realsphere.Spirit.RenderingCommon
             //      }
 
             // read name of mesh
-            mesh.Name = br.ReadCMO_wchar(); 
-                
+            mesh.Name = br.ReadCMO_wchar();
+
             // read material count
             int numMaterials = (int)br.ReadUInt32();
             mesh.Materials = new List<Material>(numMaterials);
@@ -421,7 +420,7 @@ namespace Realsphere.Spirit.RenderingCommon
                 material.SpecularPower = br.ReadSingle();
                 material.Emissive = br.ReadStructure<Vector4>();
                 material.UVTransform = br.ReadStructure<Matrix>();
-                    
+
                 // read pixel shader name
                 material.PixelShaderName = br.ReadCMO_wchar();
 
@@ -447,11 +446,11 @@ namespace Realsphere.Spirit.RenderingCommon
             //      { [SubMesh count]
             //          SubMesh structure
             //      }
-            
+
             // load sub meshes if any
             int subMeshCount = (int)br.ReadUInt32();
             mesh.SubMeshes = new List<SubMesh>(subMeshCount);
-            for (int i = 0; i < subMeshCount; i++) 
+            for (int i = 0; i < subMeshCount; i++)
             {
                 mesh.SubMeshes.Add(br.ReadStructure<SubMesh>());
             }
@@ -461,7 +460,7 @@ namespace Realsphere.Spirit.RenderingCommon
             //          UINT - Number of USHORTs in IB
             //          USHORT[] - Array of indices
             //      }
-            
+
             // load index buffers
             int indexBufferCount = (int)br.ReadUInt32();
             mesh.IndexBuffers = new List<ushort[]>(indexBufferCount);
@@ -469,7 +468,7 @@ namespace Realsphere.Spirit.RenderingCommon
             {
                 mesh.IndexBuffers.Add(br.ReadUInt16((int)br.ReadUInt32()));
             }
-                
+
             //      UINT - VB Count
             //      { [VB Count]
             //          UINT - Number of verts in VB
@@ -489,7 +488,7 @@ namespace Realsphere.Spirit.RenderingCommon
             //          UINT - Number of verts in Skinning VB
             //          SkinningVertex[] - Array of skinning verts
             //      }
-            
+
             // load vertex skinning buffers
             int skinningVertexBufferCount = (int)br.ReadUInt32();
             mesh.SkinningVertexBuffers = new List<SkinningVertex[]>(skinningVertexBufferCount);
@@ -531,7 +530,7 @@ namespace Realsphere.Spirit.RenderingCommon
                 //          }
                 //      }
                 int animationCount = (int)br.ReadUInt32();
-                mesh.Animations = new Dictionary<string,Animation>(animationCount);
+                mesh.Animations = new Dictionary<string, Animation>(animationCount);
                 for (var i = 0; i < animationCount; i++)
                 {
                     Animation animation;
@@ -560,7 +559,7 @@ namespace Realsphere.Spirit.RenderingCommon
                     var v0 = vertexBuffer[(int)indexBuffer[i]];
                     var v1 = vertexBuffer[(int)indexBuffer[i + 1]];
                     var v2 = vertexBuffer[(int)indexBuffer[i + 2]];
-                    
+
                     Vertex[] vertices = new Vertex[3] {
                         v0, v1, v2
                     };

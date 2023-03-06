@@ -432,7 +432,7 @@ namespace Realsphere.Spirit
                 float h = cos(Game.app.rotationX) * Game.app.dist;
                 Game.app.cameraTarget = new Vector3(cos(Game.app.rotationY) * h, sin(Game.app.rotationX) * Game.app.dist, sin(Game.app.rotationY) * h);
                 Game.app.viewMatrix = Matrix.LookAtRH(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), new Vector3(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z) + Game.app.cameraTarget, Vector3.UnitY);
-                
+
                 Cursor.Position = Game.app.Window.PointToScreen(new System.Drawing.Point((Game.app.Window.ClientSize.Width / 2), (Game.app.Window.ClientSize.Height / 2)));
             };
 
@@ -492,7 +492,7 @@ namespace Realsphere.Spirit
                 }
                 catch (InvalidOperationException) { }
 
-                if(Game.ShowTriggers)
+                if (Game.ShowTriggers)
                 {
                     //Display Triggers
                     foreach (Trigger trigger in Game.ActiveScene.Triggers)
@@ -520,7 +520,7 @@ namespace Realsphere.Spirit
 
                 Game.RGUI.Render(DeviceManager.Direct2DContext);
 
-                if(Game.ShowFPS)
+                if (Game.ShowFPS)
                 {
                     fps.show = true;
                     fps.Render();

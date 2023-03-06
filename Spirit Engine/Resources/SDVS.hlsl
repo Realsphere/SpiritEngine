@@ -78,9 +78,9 @@ PixelShaderInput VSMain(VertexShaderInput vertex)
     result.Diffuse = vertex.Color * MaterialDiffuse;
     result.TextureUV = vertex.TextureUV;
 
-    result.WorldNormal = mul(vertex.Normal, (float3x3)WorldInverseTranspose);
-    
+    result.WorldNormal = mul(int3(vertex.Normal), (int3x3)WorldInverseTranspose); // Change from float3 to int3
+
     result.WorldPosition = mul(vertex.Position, World).xyz;
-    
+
     return result;
 }

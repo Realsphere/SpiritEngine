@@ -35,7 +35,8 @@ namespace Realsphere.Spirit.Rendering
         R32G32_SInt,
         R32G8X24_Typeless,
         D32_Float_S8X24_UInt,
-        R32_Float_X8X24_Typeless,
+        
+        Float_X8X24_Typeless,
         X32_Typeless_G8X24_UInt,
         R10G10B10A2_Typeless,
         R10G10B10A2_UNorm,

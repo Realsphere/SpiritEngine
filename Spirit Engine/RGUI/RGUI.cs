@@ -9,13 +9,10 @@ namespace Realsphere.Spirit.RGUI
 {
     public class RGUI
     {
-        Device device;
-
         public List<RControl> Controls { get; } = new();
 
         public RGUI(Device device) 
         {
-            this.device = device;
         }
 
         internal void Render(DeviceContext context)

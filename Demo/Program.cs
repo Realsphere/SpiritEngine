@@ -4,6 +4,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading;
+using System.Windows.Controls;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using Realsphere.Spirit;
@@ -11,6 +12,7 @@ using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Input;
 using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.Modelling;
+using Realsphere.Spirit.Networking;
 using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.Rendering;
 using Realsphere.Spirit.RGUI;
@@ -35,6 +37,7 @@ namespace Demo
             Game.Player.CameraFar = 100f;
             Game.ShowTriggers = true;
             Game.ShowFPS = true;
+            Game.Player.AirControl = true;
             Game.Player.PlayerPosition = new SVector3(15f, 10f, 15f);
             DevConsole.Enable();
 
