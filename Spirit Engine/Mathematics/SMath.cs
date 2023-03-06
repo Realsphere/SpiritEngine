@@ -16,5 +16,15 @@ namespace Realsphere.Spirit.Mathematics
             else
                 return 0f;
         }
+
+        public static int Min(int value, int minimum)
+        {
+            return value < minimum ? value : minimum;
+        }
+
+        public static int Max(int value, int maximum)
+        {
+            return value > maximum ? value : maximum;
+        }
     }
 }

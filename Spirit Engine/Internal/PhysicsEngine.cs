@@ -17,6 +17,7 @@ using SharpDX.Direct3D;
 using SharpDX.Toolkit.Graphics;
 using System.Text.Json;
 using System.Printing;
+using Realsphere.Spirit.Mathematics;
 
 namespace Realsphere.Spirit.Internal
 {
@@ -413,7 +414,7 @@ namespace Realsphere.Spirit.Internal
             timeStep = (float)simTime.Elapsed.TotalSeconds - time;
             time = (float)simTime.Elapsed.TotalSeconds;
             stepping = true;
-            if (!pause) world.StepSimulation(timeStep);
+            if (!pause) world.StepSimulation(timeStep, SMath.Min(Environment.ProcessorCount / 2, 1));
             stepping = false;
         }
 
