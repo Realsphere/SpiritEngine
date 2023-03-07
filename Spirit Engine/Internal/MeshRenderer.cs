@@ -21,8 +21,6 @@ namespace Realsphere.Spirit.Internal
         // Texture resources
         internal List<ShaderResourceView> textureViews = new List<ShaderResourceView>();
 
-        internal SMaterial mat;
-
         Mesh mesh;
         // Provide access to the underlying mesh object
         public Mesh Mesh { get { return mesh; } }
@@ -108,6 +106,7 @@ namespace Realsphere.Spirit.Internal
             // Retrieve device context
             var context = DeviceManager.Direct3DContext;
 
+            int i = 0;
             // Draw sub-meshes grouped by material
             for (var mIndx = 0; mIndx < mesh.Materials.Count; mIndx++)
             {
@@ -125,19 +124,19 @@ namespace Realsphere.Spirit.Internal
                     // update the PerMaterialBuffer constant buffer
                     var material = new ConstantBuffers.PerMaterial()
                     {
-                        Ambient = mat.Ambient.sharpdxcolor,
-                        Diffuse = mat.Diffuse.sharpdxcolor,
-                        Emissive = mat.Emissive.sharpdxcolor,
-                        Specular = mat.Specular.sharpdxcolor,
-                        SpecularPower = mat.SpecularPower,
-                        UVTransform = mat.UVs.Length == 0 ? mIndx < mat.UVs.Length ? mat.UVs[mIndx].sharpDXVector : new Vector2() : new Vector2()
+                        Ambient = objectOn.getByIndex(mIndx).Ambient.sharpdxcolor,
+                        Diffuse = objectOn.getByIndex(mIndx).Diffuse.sharpdxcolor,
+                        Emissive = objectOn.getByIndex(mIndx).Emissive.sharpdxcolor,
+                        Specular = objectOn.getByIndex(mIndx).Specular.sharpdxcolor,
+                        SpecularPower = objectOn.getByIndex(mIndx).SpecularPower,
+                        HasTexture = objectOn.getByIndex(mIndx).Texture == null ? (uint)0 : (uint)1
                     };
 
                     // Bind textures to the pixel shader
                     int texIndxOffset = mIndx * Mesh.MaxTextures;
-                    material.HasTexture = (uint)(texture == null ? 0 : 1);
+                    material.HasTexture = (uint)(objectOn.getByIndex(mIndx).Texture == null || objectOn.getByIndex(mIndx).Texture.texture == null ? 0 : 1);
                     if (Game.app.pauseRendering) return;
-                    if (material.HasTexture == 1) context.PixelShader.SetShaderResource(0, texture);
+                    if (material.HasTexture == 1) context.PixelShader.SetShaderResource(0, objectOn.getByIndex(mIndx).Texture.texture);
 
                     // Set texture sampler state
                     context.PixelShader.SetSampler(0, samplerState);
@@ -149,6 +148,7 @@ namespace Realsphere.Spirit.Internal
                 // For each sub-mesh
                 foreach (var subMesh in subMeshesForMaterial)
                 {
+                    i++;
                     if (Game.app.pauseRendering) return;
                     // Ensure the vertex buffer and index buffers are in range
                     if (subMesh.VertexBufferIndex < vertexBuffers.Count && subMesh.IndexBufferIndex < indexBuffers.Count)

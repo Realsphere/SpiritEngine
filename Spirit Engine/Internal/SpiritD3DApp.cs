@@ -1,6 +1,5 @@
 #region Using Statements
 using Realsphere.Spirit.BulletPhysics;
-using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Input;
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
@@ -49,7 +48,11 @@ namespace Realsphere.Spirit
 
         internal PixelShader phongShader;
 
-        InputLayout vertexLayout;
+        internal PixelShader simpleDiffusePS;
+
+        internal VertexShader simpleDiffuseVS;
+
+        internal InputLayout vertexLayout;
 
         DepthStencilState depthStencilState;
 
@@ -117,7 +120,6 @@ namespace Realsphere.Spirit
             };
             _window.MouseDown += (o, e) =>
             {
-                if (DevConsole.show) return;
                 switch (e.Button)
                 {
                     case System.Windows.Forms.MouseButtons.Left:
@@ -139,7 +141,6 @@ namespace Realsphere.Spirit
             };
             _window.MouseUp += (o, e) =>
             {
-                if (DevConsole.show) return;
                 switch (e.Button)
                 {
                     case System.Windows.Forms.MouseButtons.Left:
@@ -175,7 +176,7 @@ namespace Realsphere.Spirit
                 if (!Game.Player.Grounded) return;
                 if (dt.Subtract(DateTime.Now).TotalSeconds > -1) return;
 
-                var jumpForce = new System.Numerics.Vector3(Game.Player.rigidBody.LinearVelocity.X, Game.Player.JumpVelocity, Game.Player.rigidBody.LinearVelocity.Z);
+                var jumpForce = new System.Numerics.Vector3(Game.Player.rigidBody.LinearVelocity.X, Game.Player.JumpVelocity * 2f, Game.Player.rigidBody.LinearVelocity.Z);
                 Game.Player.rigidBody.LinearVelocity = (jumpForce * 5f);
                 dt = DateTime.Now;
             };
@@ -281,8 +282,17 @@ namespace Realsphere.Spirit
                 }));
             }
 
+            // Compile and create the vertex shader and input layout
+            using (var vertexShaderBytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRDS), "VSMain", "vs_5_0"))
+            {
+                simpleDiffuseVS = ToDispose(new VertexShader(device, vertexShaderBytecode));
+            }
+
             using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDPX), "PSMain", "ps_5_0"))
                 phongShader = ToDispose(new PixelShader(device, bytecode));
+
+            using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRDS), "PSMain", "ps_5_0"))
+                simpleDiffusePS = ToDispose(new PixelShader(device, bytecode));
 
             perObjectBuffer = ToDispose(new SharpDX.Direct3D11.Buffer(device, Utilities.SizeOf<ConstantBuffers.PerObject>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
@@ -484,9 +494,8 @@ namespace Realsphere.Spirit
                 context.UpdateSubresource(ref perFrame, perFrameBuffer);
                 try
                 {
-                    foreach (GameObject go in Game.ActiveScene.GameObjects.Where(x => x.renderer != null && canCameraSeeObject(x)))
+                    foreach (GameObject go in Game.ActiveScene.GameObjects.Where(x => x.renderers != null && x.renderers.Length > 0 && canCameraSeeObject(x)))
                     {
-                        go.renderer.PerMaterialBuffer = perMaterialBuffer;
                         RenderObject(go, go.WorldTransform, context, viewProjection);
                     }
                 }
@@ -497,7 +506,7 @@ namespace Realsphere.Spirit
                     //Display Triggers
                     foreach (Trigger trigger in Game.ActiveScene.Triggers)
                     {
-                        trigger.go.renderer.PerMaterialBuffer = perMaterialBuffer;
+                        foreach(var renderer in trigger.go.renderers) renderer.PerMaterialBuffer = perMaterialBuffer;
                         trigger.render(context);
                     }
                 }
@@ -536,31 +545,48 @@ namespace Realsphere.Spirit
 
         internal void RenderObject(GameObject obj, Matrix objMatrix, DeviceContext context, Matrix viewProjection)
         {
+            if (obj.Shader != null) obj.Shader.Use();
             var perObject = new ConstantBuffers.PerObject();
-
-            var perMaterial = new ConstantBuffers.PerMaterial();
-            perMaterial.Ambient = obj.Material.Ambient.sharpdxcolor;
-            perMaterial.Diffuse = obj.Material.Diffuse.sharpdxcolor;
-            perMaterial.Emissive = obj.Material.Emissive.sharpdxcolor;
-            perMaterial.Specular = obj.Material.Specular.sharpdxcolor;
-            perMaterial.SpecularPower = obj.Material.SpecularPower;
-            context.UpdateSubresource(ref perMaterial, perMaterialBuffer);
 
             perObject.World = objMatrix;
 
             perObject.WorldInverseTranspose = Matrix.Transpose(Matrix.Invert(perObject.World));
             perObject.WorldViewProjection = perObject.World * viewProjection;
             perObject.Transpose();
-            obj.renderer.mat = obj.Material;
-            if (obj.Material != null && obj.Material.Texture != null)
+            foreach (var renderer in obj.renderers)
             {
-                perMaterial.Ambient = new Color4(1f);
-                perMaterial.Diffuse = new Color4(1f);
-                perMaterial.Specular = new Color4(0f);
-                obj.Material.Texture.apply(obj.renderer);
+                var Material = renderer.mat;
+                var perMaterial = new ConstantBuffers.PerMaterial();
+                if(Material != null)
+                {
+                    perMaterial.Ambient = Material.Ambient.sharpdxcolor;
+                    perMaterial.Diffuse = Material.Diffuse.sharpdxcolor;
+                    perMaterial.Emissive = Material.Emissive.sharpdxcolor;
+                    perMaterial.Specular = Material.Specular.sharpdxcolor;
+                    perMaterial.SpecularPower = Material.SpecularPower;
+                }else
+                {
+                    perMaterial.Ambient = new(255f);
+                    perMaterial.Diffuse = new(255f);
+                    perMaterial.Emissive = new(255f);
+                    perMaterial.Specular = new(255f);
+                    perMaterial.SpecularPower = 20f;
+                }
+                context.UpdateSubresource(ref perMaterial, perMaterialBuffer);
+                renderer.PerMaterialBuffer = perMaterialBuffer;
+
+                if (Material != null && Material.Texture != null)
+                {
+                    perMaterial.Ambient = new Color4(1f);
+                    perMaterial.Diffuse = new Color4(1f);
+                    perMaterial.Specular = new Color4(0f);
+                    Material.Texture.apply(renderer);
+                }
+                renderer.RenderContext.UpdateSubresource(ref perObject, perObjectBuffer);
+                renderer.Render();
             }
-            obj.renderer.RenderContext.UpdateSubresource(ref perObject, perObjectBuffer);
-            obj.renderer.Render();
+            context.VertexShader.Set(vertexShader);
+            context.PixelShader.Set(phongShader);
         }
     }
 }

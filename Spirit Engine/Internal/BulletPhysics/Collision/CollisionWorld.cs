@@ -604,6 +604,9 @@ namespace BulletSharp
 
 		public void RayTest(Vector3 rayFromWorld, Vector3 rayToWorld, RayResultCallback resultCallback)
 		{
+			if (Native == IntPtr.Zero) return;
+			if (resultCallback == null) return;
+			if (resultCallback.Native == IntPtr.Zero) return;
 			btCollisionWorld_rayTest(Native, ref rayFromWorld, ref rayToWorld, resultCallback.Native);
 		}
 

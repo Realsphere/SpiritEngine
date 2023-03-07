@@ -13,24 +13,29 @@ using System.Printing;
 using Realsphere.Spirit.BulletPhysics;
 using SharpDX.Direct2D1.Effects;
 using System.Windows.Media.Imaging;
+using Newtonsoft.Json;
+using SharpDX.Text;
 
 namespace Realsphere.Spirit.SceneManagement
 {
     public class GameObject : IDisposable
     {
         public string Name { get; private set; }
-        SMaterial mat;
-        public SMaterial Material
+        SMaterial[] mat;
+        public SMaterial[] Material
         {
             set
             {
                 mat = value;
-                if (sm != null && sm.ssuvs != null && sm.ssuvs.Length > 0)
+                foreach (var mt in mat)
                 {
-                    mat.UVs = new SVector2[sm.ssuvs.Length];
-                    for (int i = 0; i < sm.ssuvs.Length; i++)
+                    if (sm != null && sm.ssuvs != null && sm.ssuvs.Length > 0)
                     {
-                        mat.UVs[i] = sm.ssuvs[i];
+                        mt.UVs = new SVector2[sm.ssuvs.Length];
+                        for (int i = 0; i < sm.ssuvs.Length; i++)
+                        {
+                            mt.UVs[i] = sm.ssuvs[i];
+                        }
                     }
                 }
             }
@@ -39,7 +44,14 @@ namespace Realsphere.Spirit.SceneManagement
                 return mat;
             }
         }
-        internal MeshRenderer renderer;
+        internal SMaterial getByIndex(int index)
+        {
+            int i = index;
+            while (i >= mat.Length)
+                i -= mat.Length;
+            return mat[i];
+        }
+        internal MeshRenderer[] renderers;
         internal RigidBody rig;
         public SVector3 Center
         {
@@ -64,7 +76,7 @@ namespace Realsphere.Spirit.SceneManagement
             set
             {
                 sm = value;
-                sm.mesh.VertexBuffers.ForEach(x => pts.AddRange(x.Select(x => x.Position)));
+                foreach(var mesh in sm.meshes) mesh.VertexBuffers.ForEach(x => pts.AddRange(x.Select(x => x.Position)));
             }
         }
         public STransform Transform { get; }
@@ -95,11 +107,17 @@ namespace Realsphere.Spirit.SceneManagement
             {
                 hgravity = value;
                 setgrav = value;
-                if (PhysicsEngine.running) PhysicsEngine.updateObject(this);
+                if (PhysicsEngine.running) 
+                    if(rig != null)
+                    {
+                        rig.Gravity = new(0f, value ? -9.81f : 0f, 0f);
+                        rig.ApplyGravity();
+                    }
             }
         }
         internal SModel sm;
         public SBoundingBox BoundingBox { get; internal set; }
+        public SShader Shader { get; set; }
         public SVector3 Force
         {
             set
@@ -190,15 +208,38 @@ namespace Realsphere.Spirit.SceneManagement
             }
         }
 
+
+
         public static GameObject CreateUsingMesh(SModel model, string name)
         {
             GameObject go = new GameObject(name);
             go.Transform.on = go;
-            var mesh = new MeshRenderer(model.mesh);
-            mesh.Initialize(Game.app);
-            mesh.World = Matrix.Identity;
-            go.renderer = mesh;
-            go.renderer.objectOn = go;
+            var renderers = new MeshRenderer[model.meshes.Length];
+            for (int i = 0; i < renderers.Length; i++)
+            {
+                var mesh = new MeshRenderer(model.meshes[i]);
+                mesh.Initialize(Game.app);
+                mesh.World = Matrix.Identity;
+                mesh.objectOn = go;
+                renderers[i] = mesh;
+            }
+            List<SMaterial> sMats = new();
+            foreach (var materials in model.meshes.Select(x => x.Materials))
+            {
+                foreach(var material in materials)
+                {
+                    sMats.Add(new()
+                    {
+                        Ambient = new(material.Ambient.X * 255f, material.Ambient.Y * 255f, material.Ambient.Z * 255f, material.Ambient.W * 255f),
+                        Diffuse = new(material.Diffuse.X * 255f, material.Diffuse.Y * 255f, material.Diffuse.Z * 255f, material.Diffuse.W * 255f),
+                        Emissive = new(material.Emissive.X * 255f, material.Emissive.Y * 255f, material.Emissive.Z * 255f, material.Emissive.W * 255f),
+                        Specular = new(material.Specular.X * 255f, material.Specular.Y * 255f, material.Specular.Z * 255f, material.Specular.W * 255f),
+                        SpecularPower = material.SpecularPower
+                    });
+                }
+            }
+            go.mat = sMats.ToArray();
+            go.renderers = renderers;
             go.Model = model;
             go.pts = model.Vertices.Select(x => x.sharpDXVector).ToList();
             return go;
@@ -210,7 +251,8 @@ namespace Realsphere.Spirit.SceneManagement
             PhysicsEngine.world.RemoveRigidBody(rig);
             Game.ActiveScene.GameObjects.Remove(this);
             rig.CollisionShape.Dispose();
-            renderer.Dispose();
+            foreach (var renderer in renderers)
+                renderer.Dispose();
             rig.Dispose();
         }
 
@@ -219,13 +261,16 @@ namespace Realsphere.Spirit.SceneManagement
             Name = name;
             Transform = new STransform(this);
             Transform.on = this;
-            Material = new SMaterial()
+            Material = new SMaterial[]
             {
-                SpecularPower = 20f,
-                Specular = SColor.fromsharpdx(Color4.White),
-                Emissive = new SColor(0f, 0f, 0f, 0f),
-                Diffuse = SColor.fromsharpdx(Color.White),
-                Ambient = SColor.fromsharpdx(new Color4(0.2f))
+                new()
+                {
+                    SpecularPower = 20f,
+                    Specular = SColor.fromsharpdx(Color4.White),
+                    Emissive = new SColor(0f, 0f, 0f, 0f),
+                    Diffuse = SColor.fromsharpdx(Color.White),
+                    Ambient = SColor.fromsharpdx(new Color4(0.2f))
+                }
             };
         }
     }

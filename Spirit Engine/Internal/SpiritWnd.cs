@@ -1,5 +1,4 @@
-﻿using Realsphere.Spirit.DeveloperConsole;
-using Realsphere.Spirit.Input;
+﻿using Realsphere.Spirit.Input;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel;

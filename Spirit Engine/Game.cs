@@ -1,10 +1,10 @@
 ﻿using Realsphere.Spirit.BulletPhysics;
-using Realsphere.Spirit.DeveloperConsole;
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.RenderingCommon;
 using Realsphere.Spirit.SceneManagement;
+using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -393,7 +393,10 @@ namespace Realsphere.Spirit
                     while (!app.Window.IsDisposed)
                     while(AudioMaster.device == IntPtr.Zero || AudioMaster.context == IntPtr.Zero)
                         while (IsRunning)
-                            AudioMaster.setListenerData();
+                            {
+                                app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
+                                AudioMaster.setListenerData();
+                            }
                 });
                 t3.SetApartmentState(ApartmentState.STA);
                 t3.Start();
@@ -423,15 +426,15 @@ namespace Realsphere.Spirit
                 while (!IsRunning) { }
                 app.Window.MouseDown += (o, e) =>
                 {
-                    if (!DevConsole.show) if (e.Button == MouseButtons.Left && MouseLeftDown != null) MouseLeftDown.Invoke(null, e.Location);
-                    if (!DevConsole.show) if (e.Button == MouseButtons.Middle && MouseMiddleDown != null) MouseMiddleDown.Invoke(null, e.Location);
-                    if (!DevConsole.show) if (e.Button == MouseButtons.Right && MouseRightDown != null) MouseRightDown.Invoke(null, e.Location);
+                    if (e.Button == MouseButtons.Left && MouseLeftDown != null) MouseLeftDown.Invoke(null, e.Location);
+                    if (e.Button == MouseButtons.Middle && MouseMiddleDown != null) MouseMiddleDown.Invoke(null, e.Location);
+                    if (e.Button == MouseButtons.Right && MouseRightDown != null) MouseRightDown.Invoke(null, e.Location);
                 };
                 app.Window.MouseUp += (o, e) =>
                 {
-                    if (!DevConsole.show) if (e.Button == MouseButtons.Left && MouseLeftUp != null) MouseLeftUp.Invoke(null, e.Location);
-                    if (!DevConsole.show) if (e.Button == MouseButtons.Middle && MouseMiddleUp != null) MouseMiddleUp.Invoke(null, e.Location);
-                    if (!DevConsole.show) if (e.Button == MouseButtons.Right && MouseRightUp != null) MouseRightUp.Invoke(null, e.Location);
+                    if (e.Button == MouseButtons.Left && MouseLeftUp != null) MouseLeftUp.Invoke(null, e.Location);
+                    if (e.Button == MouseButtons.Middle && MouseMiddleUp != null) MouseMiddleUp.Invoke(null, e.Location);
+                    if (e.Button == MouseButtons.Right && MouseRightUp != null) MouseRightUp.Invoke(null, e.Location);
                 };
                 OnExit += (o, e) =>
                 {
@@ -561,11 +564,6 @@ namespace Realsphere.Spirit
 
             while (!app.Window.IsDisposed)
             {
-                if (DevConsole.show)
-                {
-                    Cursor.Show();
-                    continue;
-                }
                 if (!CameraLookActive) Cursor.Show();
                 float speed = Game.Player.Speed / 50000f;
 

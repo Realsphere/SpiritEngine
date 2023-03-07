@@ -155,6 +155,32 @@ namespace Realsphere.Spirit.Rendering
     
     public class SShader : SDisposable
     {
+        public static SShader SimpleDiffuse
+        {
+            get
+            {
+                return new()
+                {
+                    vs = Game.app.simpleDiffuseVS,
+                    layout = Game.app.vertexLayout,
+                    ps = Game.app.simpleDiffusePS
+                };
+            }
+        }
+
+        public static SShader DefaultShader
+        {
+            get
+            {
+                return new()
+                {
+                    vs = Game.app.vertexShader,
+                    layout = Game.app.vertexLayout,
+                    ps = Game.app.phongShader
+                };
+            }
+        }
+
         internal VertexShader vs;
         internal PixelShader ps;
         internal InputLayout layout;
@@ -209,9 +235,9 @@ namespace Realsphere.Spirit.Rendering
         public void Unuse()
         {
             var context = Game.deviceManager.Direct3DContext;
-            context.InputAssembler.InputLayout = layout;
-            context.VertexShader.Set(vs);
-            context.PixelShader.Set(ps);
+            context.InputAssembler.InputLayout = Game.app.vertexLayout;
+            context.VertexShader.Set(Game.app.vertexShader);
+            context.PixelShader.Set(Game.app.phongShader);
         }
 
         public override void SDispose()

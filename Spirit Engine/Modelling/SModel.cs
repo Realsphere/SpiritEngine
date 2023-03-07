@@ -3,6 +3,7 @@ using Realsphere.Spirit.RenderingCommon;
 using SharpDX;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -11,7 +12,7 @@ namespace Realsphere.Spirit.Modelling
 {
     public class SModel
     {
-        internal Mesh mesh;
+        internal Mesh[] meshes;
         internal Vector2[] ssuvs;
 
         public SVector3[] Vertices
@@ -19,11 +20,14 @@ namespace Realsphere.Spirit.Modelling
             get
             {
                 List<SVector3> verts = new List<SVector3>();
-                foreach (var vb in mesh.VertexBuffers)
+                foreach (var mesh in meshes)
                 {
-                    foreach (var vert in vb)
+                    foreach (var vb in mesh.VertexBuffers)
                     {
-                        verts.Add(vert.Position);
+                        foreach (var vert in vb)
+                        {
+                            verts.Add(vert.Position);
+                        }
                     }
                 }
                 return verts.ToArray();
@@ -32,7 +36,13 @@ namespace Realsphere.Spirit.Modelling
 
         public float[] Points
         {
-            get => mesh.points.ToArray();
+            get 
+            {
+                List<float> verts = new List<float>();
+                foreach (var mesh in meshes)
+                    verts.AddRange(mesh.points);
+                return verts.ToArray();
+            }
         }
 
         public uint[] Indices
@@ -40,11 +50,14 @@ namespace Realsphere.Spirit.Modelling
             get
             {
                 List<uint> verts = new List<uint>();
-                foreach (var vb in mesh.IndexBuffers)
+                foreach (var mesh in meshes)
                 {
-                    foreach (var indx in vb)
+                    foreach (var vb in mesh.IndexBuffers)
                     {
-                        verts.Add(indx);
+                        foreach (var indx in vb)
+                        {
+                            verts.Add(indx);
+                        }
                     }
                 }
                 return verts.ToArray();
@@ -54,14 +67,14 @@ namespace Realsphere.Spirit.Modelling
         public static SModel FromCMO(string cmo)
         {
             SModel sm = new SModel();
-            sm.mesh = Mesh.LoadFromFile(cmo).First();
+            sm.meshes = Mesh.LoadFromFile(cmo).ToArray();
             return sm;
         }
 
         public static SModel FromBits(byte[] bits)
         {
             SModel sm = new SModel();
-            sm.mesh = Mesh.LoadFromBits(bits).FirstOrDefault();
+            sm.meshes = Mesh.LoadFromBits(bits).ToArray();
             return sm;
         }
     }

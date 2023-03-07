@@ -2,8 +2,13 @@
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
 using SharpDX;
+using SharpDX.Direct3D;
+using SharpDX.Direct3D11;
+using SharpDX.Toolkit.Graphics;
 using System;
+using System.Drawing;
 using System.Numerics;
+using System.Runtime.InteropServices;
 using static Realsphere.Spirit.Game;
 
 namespace Realsphere.Spirit.SceneManagement
@@ -22,7 +27,7 @@ namespace Realsphere.Spirit.SceneManagement
 
                 var rayStart = rbPosition;
 
-                var rayEnd = rbPosition - new System.Numerics.Vector3(0, PlayerHeight + 0.2f, 0);
+                var rayEnd = rbPosition - new System.Numerics.Vector3(0, PlayerHeight + 0.01f, 0);
 
                 using (ClosestRayResultCallback rayCallback = new ClosestRayResultCallback(ref rayStart, ref rayEnd))
                 {
@@ -47,7 +52,6 @@ namespace Realsphere.Spirit.SceneManagement
                     rigidBody.Translate(org);
                 }
                 AudioMaster.setListenerData();
-                app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
             }
         }
         public SVector3 CameraForward
@@ -105,7 +109,7 @@ namespace Realsphere.Spirit.SceneManagement
         }
         public float PlayerHeight = 1f;
         public float PlayerRadius = 0.5f;
-        public float PlayerWeight = 2.5f;
+        public float PlayerWeight = 5f;
         public float Speed = 5f;
         float camf = 100f, camn = 0.001f;
         public float JumpVelocity = 1f;
@@ -163,10 +167,11 @@ namespace Realsphere.Spirit.SceneManagement
                                         null,
                                         shape, shape.CalculateLocalInertia(PlayerWeight)));
 
+            body.Restitution = 0f;
             body.WorldTransform = Matrix4x4.CreateTranslation(PlayerPosition);
             rigidBody = body;
             PhysicsEngine.world.AddRigidBody(body);
-            body.Gravity = new System.Numerics.Vector3(0f, -9.81f, 0f);
+            body.Gravity = new System.Numerics.Vector3(0f, -(9.81f * 2f), 0f);
             PhysicsEngine.pause = false;
         }
 

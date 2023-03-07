@@ -407,6 +407,9 @@ namespace Realsphere.Spirit.Internal
         internal static void step()
         {
             if (pause) return;
+            if (Game.ActiveScene == null) return;
+            if (Game.ActiveScene.GameObjects == null) return;
+            if (Game.ActiveScene.GameObjects.Count == 0) return;
             if ((float)simTime.Elapsed.TotalSeconds < time)
             {
                 time = 0;
@@ -415,7 +418,7 @@ namespace Realsphere.Spirit.Internal
             timeStep = (float)simTime.Elapsed.TotalSeconds - time;
             time = (float)simTime.Elapsed.TotalSeconds;
             stepping = true;
-            if (!pause) world.StepSimulation(timeStep, SMath.Min(Environment.ProcessorCount / 2, 1));
+            if (!pause) world.StepSimulation(timeStep, Game.ActiveScene.SubStepCount);
             stepping = false;
         }
 
@@ -423,8 +426,9 @@ namespace Realsphere.Spirit.Internal
         {
             List<Vector3> verts = new();
 
-            foreach (var buf in go.renderer.Mesh.VertexBuffers)
-                verts.AddRange(buf.Select(x => new Vector3(x.Position.X, x.Position.Y, x.Position.Z)));
+            foreach (var renderer in go.renderers)
+                foreach (var buf in renderer.Mesh.VertexBuffers)
+                    verts.AddRange(buf.Select(x => new Vector3(x.Position.X, x.Position.Y, x.Position.Z)));
 
             for (int i = 0; i < verts.Count; i++)
             {
@@ -438,10 +442,6 @@ namespace Realsphere.Spirit.Internal
             return shape;
         }
 
-        internal static void updateObject(GameObject go)
-        {
-        }
-
         internal static void addToScene(GameObject go)
         {
             if (world == null) return;
@@ -449,7 +449,7 @@ namespace Realsphere.Spirit.Internal
             while(stepping) { }
             CollisionShape shape = GetObjShape(go);
 
-            go.renderer.World = Matrix.Identity;
+            foreach(var renderer in go.renderers) renderer.World = Matrix.Identity;
             RigidBody body = new RigidBody(
                                     new RigidBodyConstructionInfo(
                                         go.Weight,
@@ -475,7 +475,6 @@ namespace Realsphere.Spirit.Internal
             foreach (GameObject go in scene.GameObjects)
             {
                 addToScene(go);
-                updateObject(go);
             }
             pause = false;
         }
