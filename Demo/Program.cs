@@ -8,7 +8,7 @@ using System.Windows.Controls;
 using System.Xml.Linq;
 using Newtonsoft.Json;
 using Realsphere.Spirit;
-using Realsphere.Spirit.DeveloperConsole;
+using Realsphere.Spirit.Networking;
 using Realsphere.Spirit.Input;
 using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.Modelling;
@@ -38,7 +38,6 @@ namespace Demo
             Game.ShowFPS = true;
             Game.Player.AirControl = true;
             Game.Player.PlayerPosition = new SVector3(15f, 10f, 15f);
-            DevConsole.Enable();
 
             SModel cube = StandarizedShapes.Cube;
             Scene nut = new Scene();
