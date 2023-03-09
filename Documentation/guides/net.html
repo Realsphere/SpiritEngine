@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>Networking - Spirit Documentation</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="/style.css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+    </head>
+
+    <body>
+
+        <div class="sidenav">
+            <button class="dropdown-btn active">Guide
+                <i class="fa fa-caret-down down"></i>
+            </button>
+            <div class="dropdown-container" style="display: block;">
+                <a href="/guides/getting_started.html">Getting Started</a>
+                <a href="/guides/scenes.html">Creating a Scene</a>
+                <a href="/guides/gui.html">Creating a GUI</a>
+                <a href="/guides/audio.html">Spatial Audio</a>
+                <a href="/guides/net.html">Networking</a>
+            </div>
+            <a href="/index.html">Index</a>
+        </div>
+
+        <div class="main">
+            <h2>Networking in Spirit</h2>
+            <p>Spirit has a built-int UDP Client and Server class.</p>
+            <h3>Step 1 - Creating the Server</h3>
+            <p>Creating and Starting a Server using Spirit is very easy.</p>
+            <pre>
+                <code>
+int port = 5000;
+Server server = new Server(port);
+server.ClientConnectionRequested = (ip) => 
+{
+    // Check here if there is free space for the Connecting Client
+    // We're just gonna return true
+    return true;
+};
+// id not ip!
+server.PacketRecieved = (int id, Packet pack) => 
+{
+    // Packet has multiple functions for Reading and Writing data
+    string msg = pack.ReadString();
+    Console.WriteLine(msg);
+    var p = new Packet();
+    p.Write(msg + " from server.");
+    server.SendTo(id, p);
+};
+while(true) 
+{
+    if (Console.ReadLine() == ".close") 
+    {
+        server.Close();
+    }
+}
+                </code>
+            </pre>
+            <h3>Step 2 - Creating the Client</h3>
+            <p>The Client is really important, who would have thought, so here is how to connect a Client!</p>
+            <pre>
+                <code>
+int port = 5000;
+Client client = new("127.0.0.1", port);
+if(client.Handshake() != HandshakeResult.Success) return;
+client.PacketReceived = (Packet packet) => 
+{
+    Console.WriteLine(packet.ReadString());
+};
+while (true) 
+{
+    string str = Console.ReadLine();
+    if (str == ".disconnect") 
+    {
+        client.Disconnect();
+        break;
+    }
+    else 
+    {
+        var p = new Packet();
+        p.WriteString(str);
+        client.SendPacket(p);
+    }
+}
+                </code>
+            </pre>
+            <h3>Step 3 - What now?</h3>
+            <p>You will need to port forward the Port your server runs on (in the example port 5000)</p>
+        </div>
+
+        <script>
+            var dropdown = document.getElementsByClassName("dropdown-btn");
+            var i;
+
+            for (i = 0; i < dropdown.length; i++) {
+                dropdown[i].addEventListener("click", function () {
+                    this.classList.toggle("active");
+                    this.children[0].classList.toggle("fa-caret-down");
+                    this.children[0].classList.toggle("fa-caret-up");
+                    var dropdownContent = this.nextElementSibling;
+                    if (dropdownContent.style.display === "block") {
+                        dropdownContent.style.display = "none";
+                    } else {
+                        dropdownContent.style.display = "block";
+                    }
+                });
+            }
+        </script>
+    </body>
+</html>
