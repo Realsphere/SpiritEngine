@@ -75,7 +75,22 @@ float3 SpecularBlinnPhong(float3 normal, float3 toLight, float3 toEye)
 
 float4 PSMain(PixelShaderInput pixel) : SV_Target
 {
-    return pixel.Diffuse;
+    float4 sample = (float4)1.0f;
+    if (HasTexture)
+        sample = Texture0.Sample(Sampler, pixel.TextureUV);
+
+    float3 color = float3(0, 0, 0);
+    float alpha = 1.0f;
+
+    if (HasTexture)
+    {
+        color = pixel.Diffuse;
+        alpha = sample.a;
+        return float4(color, alpha);
+    }
+    else
+        return pixel.Diffuse;
+
 }
 
 PixelShaderInput VSMain(VertexShaderInput vertex)
