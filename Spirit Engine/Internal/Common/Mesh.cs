@@ -168,21 +168,21 @@ namespace Realsphere.Spirit.RenderingCommon
 
         #region Public properties
 
-        public List<SubMesh> SubMeshes { get; private set; }
-        public List<Material> Materials { get; private set; }
-        public List<Vertex[]> VertexBuffers { get; private set; }
-        public List<SkinningVertex[]> SkinningVertexBuffers { get; private set; }
-        public List<ushort[]> IndexBuffers { get; private set; }
-        public MeshExtent Extent { get; private set; }
-        public Dictionary<string, Animation> Animations { get; private set; }
-        public List<Bone> Bones { get; private set; }
-        public List<string> BoneNames { get; private set; }
-        public string Name { get; private set; }
+        public List<SubMesh> SubMeshes { get; set; }
+        public List<Material> Materials { get; set; }
+        public List<Vertex[]> VertexBuffers { get; set; }
+        public List<SkinningVertex[]> SkinningVertexBuffers { get; set; }
+        public List<ushort[]> IndexBuffers { get; set; }
+        public MeshExtent Extent { get; set; }
+        public Dictionary<string, Animation> Animations { get; set; }
+        public List<Bone> Bones { get; set; }
+        public List<string> BoneNames { get; set; }
+        public string Name { get; set; }
 
         internal List<float> points = new List<float>();
         public List<int> tris = new List<int>();
 
-        public List<Triangle> Triangles { get; private set; }
+        public List<Triangle> Triangles { get; set; }
 
         public object Tag;
 
@@ -577,7 +577,7 @@ namespace Realsphere.Spirit.RenderingCommon
 
             foreach (var ib in mesh.IndexBuffers)
                 foreach (var indx in ib)
-                    mesh.tris.Add(indx);
+                    mesh.tris.Add((int)indx);
 
             // return the final result
             return mesh;

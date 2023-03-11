@@ -344,7 +344,7 @@ namespace Realsphere.Spirit
             {
                 FillMode = FillMode.Solid,
                 CullMode = CullMode.Front,
-                IsFrontCounterClockwise = false,
+                IsFrontCounterClockwise = false
             }));
 
             BlendStateDescription blendStateDesc = new BlendStateDescription()

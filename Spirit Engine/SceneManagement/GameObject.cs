@@ -27,17 +27,6 @@ namespace Realsphere.Spirit.SceneManagement
             set
             {
                 mat = value;
-                foreach (var mt in mat)
-                {
-                    if (sm != null && sm.ssuvs != null && sm.ssuvs.Length > 0)
-                    {
-                        mt.UVs = new SVector2[sm.ssuvs.Length];
-                        for (int i = 0; i < sm.ssuvs.Length; i++)
-                        {
-                            mt.UVs[i] = sm.ssuvs[i];
-                        }
-                    }
-                }
             }
             get
             {
@@ -47,6 +36,7 @@ namespace Realsphere.Spirit.SceneManagement
         internal SMaterial getByIndex(int index)
         {
             int i = index;
+            if(mat == null) return null;
             while (i >= mat.Length)
                 i -= mat.Length;
             return mat[i];
@@ -210,7 +200,7 @@ namespace Realsphere.Spirit.SceneManagement
 
 
 
-        public static GameObject CreateUsingMesh(SModel model, string name)
+        public static GameObject CreateUsingMesh(SModel model, string name, bool overrideModelMaterials = true)
         {
             GameObject go = new GameObject(name);
             go.Transform.on = go;
@@ -223,22 +213,28 @@ namespace Realsphere.Spirit.SceneManagement
                 mesh.objectOn = go;
                 renderers[i] = mesh;
             }
-            List<SMaterial> sMats = new();
-            foreach (var materials in model.meshes.Select(x => x.Materials))
+            if(overrideModelMaterials)
             {
-                foreach(var material in materials)
+                List<SMaterial> sMats = new();
+                foreach (var materials in model.meshes.Select(x => x.Materials))
                 {
-                    sMats.Add(new()
+                    foreach (var material in materials)
                     {
-                        Ambient = new(material.Ambient.X * 255f, material.Ambient.Y * 255f, material.Ambient.Z * 255f, material.Ambient.W * 255f),
-                        Diffuse = new(material.Diffuse.X * 255f, material.Diffuse.Y * 255f, material.Diffuse.Z * 255f, material.Diffuse.W * 255f),
-                        Emissive = new(material.Emissive.X * 255f, material.Emissive.Y * 255f, material.Emissive.Z * 255f, material.Emissive.W * 255f),
-                        Specular = new(material.Specular.X * 255f, material.Specular.Y * 255f, material.Specular.Z * 255f, material.Specular.W * 255f),
-                        SpecularPower = material.SpecularPower
-                    });
+                        sMats.Add(new()
+                        {
+                            Ambient = new(material.Ambient.X * 255f, material.Ambient.Y * 255f, material.Ambient.Z * 255f, material.Ambient.W * 255f),
+                            Diffuse = new(material.Diffuse.X * 255f, material.Diffuse.Y * 255f, material.Diffuse.Z * 255f, material.Diffuse.W * 255f),
+                            Emissive = new(material.Emissive.X * 255f, material.Emissive.Y * 255f, material.Emissive.Z * 255f, material.Emissive.W * 255f),
+                            Specular = new(material.Specular.X * 255f, material.Specular.Y * 255f, material.Specular.Z * 255f, material.Specular.W * 255f),
+                            SpecularPower = material.SpecularPower
+                        });
+                    }
                 }
+                go.mat = sMats.ToArray();
+            }else
+            {
+                go.mat = null;
             }
-            go.mat = sMats.ToArray();
             go.renderers = renderers;
             go.Model = model;
             go.pts = model.Vertices.Select(x => x.sharpDXVector).ToList();

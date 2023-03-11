@@ -1,19 +1,22 @@
-﻿using Realsphere.Spirit.Mathematics;
+﻿using Assimp;
+using Newtonsoft.Json;
+using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.RenderingCommon;
-using SharpDX;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using Mesh = Realsphere.Spirit.RenderingCommon.Mesh;
 
 namespace Realsphere.Spirit.Modelling
 {
     public class SModel
     {
         internal Mesh[] meshes;
-        internal Vector2[] ssuvs;
 
         public SVector3[] Vertices
         {
@@ -56,7 +59,7 @@ namespace Realsphere.Spirit.Modelling
                     {
                         foreach (var indx in vb)
                         {
-                            verts.Add(indx);
+                            verts.Add((uint)indx);
                         }
                     }
                 }
@@ -76,6 +79,38 @@ namespace Realsphere.Spirit.Modelling
             SModel sm = new SModel();
             sm.meshes = Mesh.LoadFromBits(bits).ToArray();
             return sm;
+        }
+
+        public static SModel FromOBJ(string file)
+        {
+            try
+            {
+                Convert(file, "tmp.cmo");
+                var mesh = FromCMO("tmp.cmo");
+                File.Delete("tmp.cmo");
+                return mesh;
+            }catch(Exception ex)
+            {
+                File.Delete(AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe");
+                File.Delete("tmp.cmo");
+                return null;
+            }
+        }
+
+        static void Convert(string input, string output)
+        {
+            File.WriteAllBytes(AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe", Properties.Resources.dxmesh);
+            Process proc = new Process();
+            proc.StartInfo = new()
+            {
+                CreateNoWindow = true,
+                WindowStyle = ProcessWindowStyle.Hidden,
+                FileName = AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe",
+                Arguments = "-cmo \"" + input + "\" -o \"" + AppDomain.CurrentDomain.BaseDirectory + "\\" + output + "\" -y"
+            };
+            proc.Start();
+            proc.WaitForExit();
+            File.Delete(AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe");
         }
     }
 }

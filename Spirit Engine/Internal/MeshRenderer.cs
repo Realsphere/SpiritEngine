@@ -116,38 +116,58 @@ namespace Realsphere.Spirit.Internal
                      where sm.MaterialIndex == mIndx
                      select sm).ToArray();
 
-                // If the material buffer is available and there are submeshes
-                // using the material update the PerMaterialBuffer
-
-                if (PerMaterialBuffer != null && subMeshesForMaterial.Length > 0)
-                {
-                    // update the PerMaterialBuffer constant buffer
-                    var material = new ConstantBuffers.PerMaterial()
-                    {
-                        Ambient = objectOn.getByIndex(mIndx).Ambient.sharpdxcolor,
-                        Diffuse = objectOn.getByIndex(mIndx).Diffuse.sharpdxcolor,
-                        Emissive = objectOn.getByIndex(mIndx).Emissive.sharpdxcolor,
-                        Specular = objectOn.getByIndex(mIndx).Specular.sharpdxcolor,
-                        SpecularPower = objectOn.getByIndex(mIndx).SpecularPower,
-                        HasTexture = objectOn.getByIndex(mIndx).Texture == null ? (uint)0 : (uint)1
-                    };
-
-                    // Bind textures to the pixel shader
-                    int texIndxOffset = mIndx * Mesh.MaxTextures;
-                    material.HasTexture = (uint)(objectOn.getByIndex(mIndx).Texture == null || objectOn.getByIndex(mIndx).Texture.texture == null ? 0 : 1);
-                    if (Game.app.pauseRendering) return;
-                    if (material.HasTexture == 1) context.PixelShader.SetShaderResource(0, objectOn.getByIndex(mIndx).Texture.texture);
-
-                    // Set texture sampler state
-                    context.PixelShader.SetSampler(0, samplerState);
-
-                    // Update material buffer
-                    context.UpdateSubresource(ref material, PerMaterialBuffer);
-                }
 
                 // For each sub-mesh
                 foreach (var subMesh in subMeshesForMaterial)
                 {
+                    // If the material buffer is available and there are submeshes
+                    // using the material update the PerMaterialBuffer
+
+                    if (PerMaterialBuffer != null && subMeshesForMaterial.Length > 0)
+                    {
+                        ConstantBuffers.PerMaterial material;
+                        // update the PerMaterialBuffer constant buffer
+                        if (objectOn.Material != null && objectOn.Material.Length > 0)
+                        {
+                            material = new ConstantBuffers.PerMaterial()
+                            {
+                                Ambient = objectOn.getByIndex(mIndx).Ambient.sharpdxcolor,
+                                Diffuse = objectOn.getByIndex(mIndx).Diffuse.sharpdxcolor,
+                                Emissive = objectOn.getByIndex(mIndx).Emissive.sharpdxcolor,
+                                Specular = objectOn.getByIndex(mIndx).Specular.sharpdxcolor,
+                                SpecularPower = objectOn.getByIndex(mIndx).SpecularPower,
+                                HasTexture = objectOn.getByIndex(mIndx).Texture == null ? (uint)0 : (uint)1
+                            };
+                        }
+                        else
+                        {
+                            material = new ConstantBuffers.PerMaterial()
+                            {
+                                Ambient = new(mesh.Materials[(int)subMesh.MaterialIndex].Ambient),
+                                Diffuse = new(mesh.Materials[(int)subMesh.MaterialIndex].Diffuse),
+                                Emissive = new(mesh.Materials[(int)subMesh.MaterialIndex].Emissive),
+                                Specular = new(mesh.Materials[(int)subMesh.MaterialIndex].Specular),
+                                SpecularPower = mesh.Materials[(int)subMesh.MaterialIndex].SpecularPower,
+                                HasTexture = mesh.Materials[(int)subMesh.MaterialIndex].Textures.Length == 0 ? (uint)0 : (uint)1
+                            };
+                        }
+
+                        if (objectOn.Material != null && objectOn.Material.Length > 0)
+                        {
+                            // Bind textures to the pixel shader
+                            int texIndxOffset = mIndx * Mesh.MaxTextures;
+                            material.HasTexture = (uint)(objectOn.getByIndex(mIndx).Texture == null || objectOn.getByIndex(mIndx).Texture.texture == null ? 0 : 1);
+                            if (Game.app.pauseRendering) return;
+                            if (material.HasTexture == 1) context.PixelShader.SetShaderResource(0, objectOn.getByIndex(mIndx).Texture.texture);
+
+                            // Set texture sampler state
+                            context.PixelShader.SetSampler(0, samplerState);
+                        }
+
+                        // Update material buffer
+                        context.UpdateSubresource(ref material, PerMaterialBuffer);
+                    }
+
                     i++;
                     if (Game.app.pauseRendering) return;
                     // Ensure the vertex buffer and index buffers are in range

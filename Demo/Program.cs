@@ -52,7 +52,7 @@ namespace Demo
 
             AudioSource source = new("whoosh.wav");
 
-            GameObject go12 = GameObject.CreateUsingMesh(SModel.FromCMO("untitled.cmo"), "sheep");
+            GameObject go12 = GameObject.CreateUsingMesh(SModel.FromOBJ("untitled.obj"), "sheep");
             go12.Weight = 0f;
             go12.HasGravity = false;
             go12.HasCollision = false;
@@ -107,7 +107,7 @@ namespace Demo
             go6.Transform.Position = new SVector3(11f, 9f, 10f);
             go6.Transform.Scale = new SVector3(1f, 1f, 1f);
             nut.GameObjects.Add(go6);
-
+            
             // random cubes (stars)
             Random r = new Random();
             for (int i = 0; i < 5000; i++)
@@ -153,14 +153,6 @@ namespace Demo
                 Game.Player.PlayerHeight = 1.75f;
                 Game.Player.EnablePhysics();
             };
-
-            foreach (GameObject go in Game.ActiveScene.GameObjects)
-            {
-                if (go.Name.StartsWith("Index"))
-                {
-                    go.Force = new SVector3(r.Next(-8, 8), r.Next(0, 8), r.Next(-8, 8));
-                }
-            }
         }
     }
 }

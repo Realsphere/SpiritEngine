@@ -12,12 +12,26 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="Assimp\**" />
+    <Compile Remove="Internal\ObjLoader\**" />
+    <EmbeddedResource Remove="Assimp\**" />
+    <EmbeddedResource Remove="Internal\ObjLoader\**" />
+    <None Remove="Assimp\**" />
+    <None Remove="Internal\ObjLoader\**" />
+    <Page Remove="Assimp\**" />
+    <Page Remove="Internal\ObjLoader\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Newtonsoft.Json" Version="13.0.2" />
     <PackageReference Include="System.Runtime.InteropServices" Version="4.3.0" />
     <PackageReference Include="unvell.D2DLib" Version="1.4.1" />
   </ItemGroup>
 
   <ItemGroup>
+    <Reference Include="AssimpNet">
+      <HintPath>..\Lib\AssimpNet.dll</HintPath>
+    </Reference>
     <Reference Include="SharpDX">
       <HintPath>..\Lib\SharpDX.dll</HintPath>
     </Reference>
@@ -69,10 +83,6 @@
       <Generator>SettingsSingleFileGenerator</Generator>
       <LastGenOutput>Settings.Designer.cs</LastGenOutput>
     </None>
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="Internal\ObjLoader\" />
   </ItemGroup>
 
 </Project>
