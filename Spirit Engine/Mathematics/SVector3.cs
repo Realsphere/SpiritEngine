@@ -21,6 +21,14 @@ namespace Realsphere.Spirit.Mathematics
             }
         }
 
+        public static SVector3 Zero
+        {
+            get
+            {
+                return new();
+            }
+        }
+
         public void Normalize()
         {
             X = SMath.Normalize(X);

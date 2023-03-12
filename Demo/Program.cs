@@ -36,7 +36,7 @@ namespace Demo
             Game.Player.CameraFar = 100f;
             Game.ShowTriggers = true;
             Game.ShowFPS = true;
-            Game.Player.AirControl = true;
+            Game.Player.AirControl = 0.5f;
             Game.Player.PlayerPosition = new SVector3(15f, 10f, 15f);
 
             SModel cube = StandarizedShapes.Cube;
@@ -153,6 +153,13 @@ namespace Demo
                 Game.Player.PlayerHeight = 1.75f;
                 Game.Player.EnablePhysics();
             };
+            foreach (GameObject go in Game.ActiveScene.GameObjects)
+            {
+                if (go.Name.StartsWith("Index"))
+                {
+                    go.Force = new SVector3(r.Next(-8, 8), r.Next(0, 8), r.Next(-8, 8));
+                }
+            }
         }
     }
 }

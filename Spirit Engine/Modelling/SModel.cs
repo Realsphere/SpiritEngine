@@ -1,5 +1,4 @@
-﻿using Assimp;
-using Newtonsoft.Json;
+﻿using Newtonsoft.Json;
 using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.RenderingCommon;
 using System;
@@ -7,9 +6,11 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Linq;
+using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 using System.Windows.Controls;
+using System.Windows.Forms;
 using Mesh = Realsphere.Spirit.RenderingCommon.Mesh;
 
 namespace Realsphere.Spirit.Modelling
@@ -83,34 +84,22 @@ namespace Realsphere.Spirit.Modelling
 
         public static SModel FromOBJ(string file)
         {
-            try
+            if (!Path.IsPathRooted(file))
+                file = Path.Combine(Path.GetDirectoryName(Application.ExecutablePath), file);
+            string args = "-cmo:SPE:" + file + ":SPE:-cmo:SPE:-y:SPE:-o:SPE:" + Path.GetDirectoryName(file) + "\\" + Path.GetFileNameWithoutExtension(file) + ".cmo";
+            if (APIMain(args.Split(":SPE:").Length, args.Split(":SPE:")) == 0)
             {
-                Convert(file, "tmp.cmo");
-                var mesh = FromCMO("tmp.cmo");
-                File.Delete("tmp.cmo");
-                return mesh;
-            }catch(Exception ex)
+                var model = FromCMO(Path.GetDirectoryName(file) + "\\" + Path.GetFileNameWithoutExtension(file) + ".cmo");
+                File.Delete(Path.GetDirectoryName(file) + "\\" + Path.GetFileNameWithoutExtension(file) + ".cmo");
+                return model;
+            }
+            else
             {
-                File.Delete(AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe");
-                File.Delete("tmp.cmo");
-                return null;
+                throw new Exception("Could not load OBJ file: " + file);
             }
         }
 
-        static void Convert(string input, string output)
-        {
-            File.WriteAllBytes(AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe", Properties.Resources.dxmesh);
-            Process proc = new Process();
-            proc.StartInfo = new()
-            {
-                CreateNoWindow = true,
-                WindowStyle = ProcessWindowStyle.Hidden,
-                FileName = AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe",
-                Arguments = "-cmo \"" + input + "\" -o \"" + AppDomain.CurrentDomain.BaseDirectory + "\\" + output + "\" -y"
-            };
-            proc.Start();
-            proc.WaitForExit();
-            File.Delete(AppDomain.CurrentDomain.BaseDirectory + "\\dxmesh.exe");
-        }
+        [DllImport("rsdx.dll", CharSet = CharSet.Unicode)]
+        internal static extern int APIMain(int argc, [MarshalAs(UnmanagedType.LPArray, ArraySubType = UnmanagedType.LPWStr)] string[] argv);
     }
 }

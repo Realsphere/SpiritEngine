@@ -153,6 +153,16 @@ namespace Realsphere.Spirit.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
         /// </summary>
+        internal static byte[] rsdx {
+            get {
+                object obj = ResourceManager.GetObject("rsdx", resourceCulture);
+                return ((byte[])(obj));
+            }
+        }
+        
+        /// <summary>
+        ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
+        /// </summary>
         internal static byte[] SDPX {
             get {
                 object obj = ResourceManager.GetObject("SDPX", resourceCulture);

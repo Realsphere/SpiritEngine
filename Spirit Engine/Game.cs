@@ -17,6 +17,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
+using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using Cursor = System.Windows.Forms.Cursor;
 
 namespace Realsphere.Spirit
@@ -342,6 +343,7 @@ namespace Realsphere.Spirit
             try { File.WriteAllBytes("libsndfile-1.dll", Properties.Resources.libsndfile_1); } catch (IOException) { }
             try { File.WriteAllBytes("ogg.dll", Properties.Resources.ogg); } catch (IOException) { }
             try { File.WriteAllBytes("vorbis.dll", Properties.Resources.vorbis); } catch (IOException) { }
+            try { File.WriteAllBytes("rsdx.dll", Properties.Resources.rsdx); } catch (IOException) { }
             try { File.WriteAllBytes("vorbisenc.dll", Properties.Resources.vorbisenc); } catch (IOException) { }
             try { File.WriteAllBytes("flac.dll", Properties.Resources.flac); } catch (IOException) { }
             Logger.Log("Finished!", LogLevel.Information);
@@ -403,7 +405,7 @@ namespace Realsphere.Spirit
                 Logger.Log("DirectX Initializing", LogLevel.Information);
                 appThread = new Thread(() =>
                 {
-#if SpiritDebug
+#if !SpiritDebug
                     try
                     {
 #endif
@@ -412,7 +414,7 @@ namespace Realsphere.Spirit
                         app.VSync = ssi.VSync;
                         app.Initialize();
                         app.Run();
-#if SpiritDebug
+#if !SpiritDebug
                     }
                     catch (Exception ex)
                     {
@@ -559,6 +561,7 @@ namespace Realsphere.Spirit
         [STAThread]
         static void InputThread()
         {
+            SVector3 lastMoveDir = new();
             while (app == null) { }
             while (app.Window == null) { }
 
@@ -588,7 +591,17 @@ namespace Realsphere.Spirit
                         moveDir -= Player.PlayerForward * speed;
                     }
 
-                    if (Player.Grounded || Player.AirControl) Player.rigidBody.LinearVelocity = new(moveDir.X, Player.rigidBody.LinearVelocity.Y, moveDir.Z);
+                    if (Player.Grounded)
+                    {
+                        Player.rigidBody.LinearVelocity = new(moveDir.X, Player.rigidBody.LinearVelocity.Y, moveDir.Z);
+                        lastMoveDir = moveDir;
+                    }else
+                    {
+                        float airMovementSpeed = Player.AirControl * 0.00005f;
+                        var newVelocity = Player.rigidBody.LinearVelocity + ((System.Numerics.Vector3)moveDir * airMovementSpeed);
+                        newVelocity = new(newVelocity.X, Player.rigidBody.LinearVelocity.Y, newVelocity.Z);
+                        Player.rigidBody.LinearVelocity = newVelocity;
+                    }
                     continue;
                 }
 

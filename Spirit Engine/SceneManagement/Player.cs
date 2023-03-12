@@ -2,13 +2,8 @@
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
 using SharpDX;
-using SharpDX.Direct3D;
-using SharpDX.Direct3D11;
-using SharpDX.Toolkit.Graphics;
 using System;
-using System.Drawing;
 using System.Numerics;
-using System.Runtime.InteropServices;
 using static Realsphere.Spirit.Game;
 
 namespace Realsphere.Spirit.SceneManagement
@@ -113,7 +108,7 @@ namespace Realsphere.Spirit.SceneManagement
         public float Speed = 5f;
         float camf = 100f, camn = 0.001f;
         public float JumpVelocity = 1f;
-        public bool AirControl;
+        public float AirControl = 0.5f;
         public float CameraFar
         {
             get
@@ -158,6 +153,7 @@ namespace Realsphere.Spirit.SceneManagement
         public void EnablePhysics()
         {
             if (PhysicsEngine.world == null) return;
+            while(PhysicsEngine.stepping) { }
             PhysicsEngine.pause = true;
             CollisionShape shape = new CapsuleShape(PlayerRadius, PlayerHeight);
 
@@ -180,6 +176,7 @@ namespace Realsphere.Spirit.SceneManagement
         /// </summary>
         public void DisablePhysics()
         {
+            while (PhysicsEngine.stepping) { }
             PhysicsEngine.pause = true;
             PhysicsEngine.world.RemoveRigidBody(rigidBody);
             rigidBody.CollisionShape.Dispose();
