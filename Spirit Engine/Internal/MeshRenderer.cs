@@ -27,6 +27,8 @@ namespace Realsphere.Spirit.Internal
 
         // The per material buffer to use so that the mesh parameters can be used
         public Buffer PerMaterialBuffer { get; set; }
+        // The per armature constant buffer to use
+        public Buffer PerArmatureBuffer { get { return Game.app.perArmatureBuffer; } }
 
         public MeshRenderer(Mesh mesh)
         {
@@ -99,14 +101,134 @@ namespace Realsphere.Spirit.Internal
             }));
         }
 
+        // Create and allow access to a timer
+        System.Diagnostics.Stopwatch clock = new System.Diagnostics.Stopwatch();
+        public System.Diagnostics.Stopwatch Clock
+        {
+            get { return clock; }
+            set { clock = value; }
+        }
+
+        // The currently active animation (allows nulls)
+        public Mesh.Animation? CurrentAnimation { get; set; }
+
+        // Play once or loop the animation?
+        public bool PlayOnce { get; set; }
+
         protected override void DoRender()
         {
             if (Game.app.pauseRendering) return;
 
+            // Calculate elapsed seconds
+            var time = clock.ElapsedMilliseconds / 1000.0f;
+
             // Retrieve device context
             var context = DeviceManager.Direct3DContext;
 
-            int i = 0;
+            if(CurrentAnimation != null)
+            {
+
+                // Calculate skin matrices for each bone
+                ConstantBuffers.PerArmature skinMatrices = new ConstantBuffers.PerArmature();
+                if (mesh.Bones != null)
+                {
+                    // Retrieve each bone's local transform
+                    for (var i = 0; i < mesh.Bones.Count; i++)
+                    {
+                        skinMatrices.Bones[i] = mesh.Bones[i].BoneLocalTransform;
+                    }
+
+                    // Load bone transforms from animation frames
+                    if (CurrentAnimation.HasValue)
+                    {
+                        // Keep track of the last key-frame used for each bone
+                        Mesh.Keyframe?[] lastKeyForBones = new Mesh.Keyframe?[mesh.Bones.Count];
+                        // Keep track of whether a bone has been interpolated
+                        bool[] lerpedBones = new bool[mesh.Bones.Count];
+                        for (var i = 0; i < CurrentAnimation.Value.Keyframes.Count; i++)
+                        {
+                            // Retrieve current key-frame
+                            var frame = CurrentAnimation.Value.Keyframes[i];
+
+                            // If the current frame is not in the future
+                            if (frame.Time <= time)
+                            {
+                                // Keep track of last key-frame for bone
+                                lastKeyForBones[frame.BoneIndex] = frame;
+                                // Retrieve transform from current key-frame
+                                skinMatrices.Bones[frame.BoneIndex] = frame.Transform;
+                            }
+                            // Frame is in the future, check if we should interpolate
+                            else
+                            {
+                                // Only interpolate a bone's key-frames ONCE
+                                if (!lerpedBones[frame.BoneIndex])
+                                {
+                                    // Retrieve the previous key-frame if exists
+                                    Mesh.Keyframe prevFrame;
+                                    if (lastKeyForBones[frame.BoneIndex] != null)
+                                        prevFrame = lastKeyForBones[frame.BoneIndex].Value;
+                                    else
+                                        continue; // nothing to interpolate
+                                                  // Make sure we only interpolate with 
+                                                  // one future frame for this bone
+                                    lerpedBones[frame.BoneIndex] = true;
+
+                                    // Calculate time difference between frames
+                                    var frameLength = frame.Time - prevFrame.Time;
+                                    var timeDiff = time - prevFrame.Time;
+                                    var amount = timeDiff / frameLength;
+
+                                    // Interpolation using Lerp on scale and translation, and Slerp on Rotation (Quaternion)
+                                    Vector3 t1, t2;   // Translation
+                                    Quaternion q1, q2;// Rotation
+                                    float s1, s2;     // Scale
+                                                      // Decompose the previous key-frame's transform
+                                    prevFrame.Transform.DecomposeUniformScale(out s1, out q1, out t1);
+                                    // Decompose the current key-frame's transform
+                                    frame.Transform.DecomposeUniformScale(out s2, out q2, out t2);
+
+                                    // Perform interpolation and reconstitute matrix
+                                    skinMatrices.Bones[frame.BoneIndex] =
+                                        Matrix.Scaling(MathUtil.Lerp(s1, s2, amount)) *
+                                        Matrix.RotationQuaternion(Quaternion.Slerp(q1, q2, amount)) *
+                                        Matrix.Translation(Vector3.Lerp(t1, t2, amount));
+                                }
+                            }
+
+                        }
+                    }
+
+                    // Apply parent bone transforms
+                    // We assume here that the first bone has no parent
+                    // and that each parent bone appears before children
+                    for (var i = 1; i < mesh.Bones.Count; i++)
+                    {
+                        var bone = mesh.Bones[i];
+                        if (bone.ParentIndex > -1)
+                        {
+                            var parentTransform = skinMatrices.Bones[bone.ParentIndex];
+                            skinMatrices.Bones[i] = (skinMatrices.Bones[i] * parentTransform);
+                        }
+                    }
+
+                    // Change the bone transform from rest pose space into bone space (using the inverse of the bind/rest pose)
+                    for (var i = 0; i < mesh.Bones.Count; i++)
+                    {
+                        skinMatrices.Bones[i] = Matrix.Transpose(mesh.Bones[i].InvBindPose * skinMatrices.Bones[i]);
+                    }
+
+                    // Check need to loop animation
+                    if (!PlayOnce && CurrentAnimation.HasValue && CurrentAnimation.Value.EndTime <= time)
+                    {
+                        this.Clock.Restart();
+                    }
+                }
+
+                // Update the constant buffer with the skin matrices for each bone
+                context.UpdateSubresource(skinMatrices.Bones, PerArmatureBuffer);
+            }
+
             // Draw sub-meshes grouped by material
             for (var mIndx = 0; mIndx < mesh.Materials.Count; mIndx++)
             {
@@ -127,7 +249,7 @@ namespace Realsphere.Spirit.Internal
                     {
                         ConstantBuffers.PerMaterial material;
                         // update the PerMaterialBuffer constant buffer
-                        if (objectOn.Material != null && objectOn.Material.Length > 0)
+                        if (objectOn.Materials != null && objectOn.Materials.Length > 0)
                         {
                             material = new ConstantBuffers.PerMaterial()
                             {
@@ -152,7 +274,7 @@ namespace Realsphere.Spirit.Internal
                             };
                         }
 
-                        if (objectOn.Material != null && objectOn.Material.Length > 0)
+                        if (objectOn.Materials != null && objectOn.Materials.Length > 0)
                         {
                             // Bind textures to the pixel shader
                             int texIndxOffset = mIndx * Mesh.MaxTextures;
@@ -168,7 +290,6 @@ namespace Realsphere.Spirit.Internal
                         context.UpdateSubresource(ref material, PerMaterialBuffer);
                     }
 
-                    i++;
                     if (Game.app.pauseRendering) return;
                     // Ensure the vertex buffer and index buffers are in range
                     if (subMesh.VertexBufferIndex < vertexBuffers.Count && subMesh.IndexBufferIndex < indexBuffers.Count)

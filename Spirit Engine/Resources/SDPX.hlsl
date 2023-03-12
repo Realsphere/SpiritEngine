@@ -86,21 +86,12 @@ float4 PSMain(PixelShaderInput pixel) : SV_Target
     float3 ambient = MaterialAmbient.rgb;
     float3 emissive = MaterialEmissive.rgb;
     float3 diffuse = Lambert(pixel.Diffuse, normal, toLight);
-    float3 specular = SpecularPhong(normal, toLight, toEye);
+    float3 specular = SpecularBlinnPhong(normal, toLight, toEye);
 
     float3 color = float3(0, 0, 0);
-    float alpha = 1.0f;
+    float alpha = pixel.Diffuse.a * sample.a;
 
-    if (HasTexture)
-    {
-        color = (saturate(ambient + diffuse) * sample.rgb + specular) * Light.Color.rgb;
-        alpha = sample.a;
-    }
-    else
-    {
-        color = (saturate(ambient + diffuse) * sample.rgb + specular) * Light.Color.rgb + emissive;
-        alpha = pixel.Diffuse.a;
-    }
-
+    color = (saturate(ambient + diffuse) * sample.rgb + specular) * Light.Color.rgb + emissive;
+    
     return float4(color, alpha);
 }

@@ -8,13 +8,7 @@ using Realsphere.Spirit.Rendering;
 using Realsphere.Spirit.Internal;
 using BulletSharp;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Printing;
 using Realsphere.Spirit.BulletPhysics;
-using SharpDX.Direct2D1.Effects;
-using System.Windows.Media.Imaging;
-using Newtonsoft.Json;
-using SharpDX.Text;
 
 namespace Realsphere.Spirit.SceneManagement
 {
@@ -22,7 +16,7 @@ namespace Realsphere.Spirit.SceneManagement
     {
         public string Name { get; private set; }
         SMaterial[] mat;
-        public SMaterial[] Material
+        public SMaterial[] Materials
         {
             set
             {
@@ -257,7 +251,7 @@ namespace Realsphere.Spirit.SceneManagement
             Name = name;
             Transform = new STransform(this);
             Transform.on = this;
-            Material = new SMaterial[]
+            Materials = new SMaterial[]
             {
                 new()
                 {

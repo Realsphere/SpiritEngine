@@ -62,6 +62,8 @@ namespace Realsphere.Spirit
 
         internal Buffer perMaterialBuffer;
 
+        internal Buffer perArmatureBuffer;
+
         internal float rotationX = 0f;
         internal float rotationY = 0f;
         internal float dist = 1;
@@ -260,6 +262,7 @@ namespace Realsphere.Spirit
             RemoveAndDispose(ref perObjectBuffer);
             RemoveAndDispose(ref perFrameBuffer);
             RemoveAndDispose(ref perMaterialBuffer);
+            RemoveAndDispose(ref perArmatureBuffer);
 
             RemoveAndDispose(ref depthStencilState);
 
@@ -300,6 +303,8 @@ namespace Realsphere.Spirit
 
             perMaterialBuffer = ToDispose(new Buffer(device, Utilities.SizeOf<ConstantBuffers.PerMaterial>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
+            perArmatureBuffer = ToDispose(new Buffer(device, ConstantBuffers.PerArmature.Size(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
+
             depthStencilState = ToDispose(new DepthStencilState(device,
                 new DepthStencilStateDescription()
                 {
@@ -330,6 +335,7 @@ namespace Realsphere.Spirit
             context.VertexShader.SetConstantBuffer(0, perObjectBuffer);
             context.VertexShader.SetConstantBuffer(1, perFrameBuffer);
             context.VertexShader.SetConstantBuffer(2, perMaterialBuffer);
+            context.VertexShader.SetConstantBuffer(3, perArmatureBuffer);
 
             context.VertexShader.Set(vertexShader);
 
@@ -487,9 +493,9 @@ namespace Realsphere.Spirit
                 var worldRotation = Matrix.RotationAxis(Vector3.UnitY, time);
 
                 var perFrame = new ConstantBuffers.PerFrame();
-                perFrame.Light.Color = Game.ActiveScene.Light.LightColor.sharpdxcolor;
-                var lightDir = Vector3.Transform(Game.ActiveScene.Light.LightDirection.sharpDXVector, worldMatrix);
-                perFrame.Light.Direction = new Vector3(lightDir.X, lightDir.Y, lightDir.Z);
+                perFrame.Light.Color = new(150f / 255f);
+                var lightDir = Vector3.Transform(new(50f, 50f, 50f), worldMatrix);
+                perFrame.Light.Direction = new Vector3(-1f, -1f, -1f);
                 perFrame.CameraPosition = Game.Player.PlayerPosition.sharpDXVector;
                 context.UpdateSubresource(ref perFrame, perFrameBuffer);
                 try

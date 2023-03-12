@@ -52,7 +52,8 @@ namespace Demo
 
             AudioSource source = new("whoosh.wav");
 
-            GameObject go12 = GameObject.CreateUsingMesh(SModel.FromOBJ("untitled.obj"), "sheep");
+            //GameObject go12 = GameObject.CreateUsingMesh(SModel.FromOBJ("untitled.obj"), "sheep");
+            GameObject go12 = GameObject.CreateUsingMesh(SModel.FromCMO("Character.cmo"), "sheep");
             go12.Weight = 0f;
             go12.HasGravity = false;
             go12.HasCollision = false;
@@ -65,7 +66,7 @@ namespace Demo
             GameObject go1 = GameObject.CreateUsingMesh(cube, "Mesh11");
             go1.Weight = 0f;
             go1.HasGravity = false;
-            go1.Material = new SMaterial[]
+            go1.Materials = new SMaterial[]
             {
                 new()
                 {
@@ -82,28 +83,28 @@ namespace Demo
             GameObject go3 = GameObject.CreateUsingMesh(cube, "Mesh1");
             go3.Weight = 0f;
             go3.HasGravity = false;
-            go3.Material = new SMaterial[] { new() { Ambient = new SColor(0f, 0f, 255f, 255f), Diffuse = new SColor(0f, 0f, 255f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(0f, 0f, 255f, 255f), SpecularPower = 20f } };
+            go3.Materials = new SMaterial[] { new() { Ambient = new SColor(0f, 0f, 255f, 255f), Diffuse = new SColor(0f, 0f, 255f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(0f, 0f, 255f, 255f), SpecularPower = 20f } };
             go3.Transform.Position = new SVector3(12f, 5f, 10f);
             go3.Transform.Scale = new SVector3(1f, 1f, 1f);
             nut.GameObjects.Add(go3);
             GameObject go4 = GameObject.CreateUsingMesh(cube, "Mesh1");
             go4.Weight = 1f;
             go4.HasGravity = true;
-            go4.Material = new SMaterial[] { new() { Ambient = new SColor(255f, 0f, 255f, 255f), Diffuse = new SColor(255f, 0f, 255f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(255f, 0f, 255f, 255f), SpecularPower = 20f } };
+            go4.Materials = new SMaterial[] { new() { Ambient = new SColor(255f, 0f, 255f, 255f), Diffuse = new SColor(255f, 0f, 255f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(255f, 0f, 255f, 255f), SpecularPower = 20f } };
             go4.Transform.Position = new SVector3(12f, 7f, 10f);
             go4.Transform.Scale = new SVector3(1f, 1f, 1f);
             nut.GameObjects.Add(go4);
             GameObject go5 = GameObject.CreateUsingMesh(cube, "Mesh1");
             go5.Weight = 1f;
             go5.HasGravity = true;
-            go5.Material = new SMaterial[] { new() { Ambient = new SColor(255f, 255f, 0f, 255f), Diffuse = new SColor(255f, 255f, 0f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(255f, 255f, 0f, 255f), SpecularPower = 20f } };
+            go5.Materials = new SMaterial[] { new() { Ambient = new SColor(255f, 255f, 0f, 255f), Diffuse = new SColor(255f, 255f, 0f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(255f, 255f, 0f, 255f), SpecularPower = 20f } };
             go5.Transform.Position = new SVector3(10f, 7f, 10f);
             go5.Transform.Scale = new SVector3(1f, 1f, 1f);
             nut.GameObjects.Add(go5);
             GameObject go6 = GameObject.CreateUsingMesh(cube, "Mesh1");
             go6.Weight = 1f;
             go6.HasGravity = true;
-            go6.Material = new SMaterial[] { new() { Ambient = new SColor(255f, 255f, 255f, 255f), Diffuse = new SColor(255f, 255f, 255f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(0f, 255f, 255f, 255f), SpecularPower = 20f } };
+            go6.Materials = new SMaterial[] { new() { Ambient = new SColor(255f, 255f, 255f, 255f), Diffuse = new SColor(255f, 255f, 255f, 255f), Emissive = new SColor(0f, 0f, 255f, 0f), Specular = new SColor(0f, 255f, 255f, 255f), SpecularPower = 20f } };
             go6.Transform.Position = new SVector3(11f, 9f, 10f);
             go6.Transform.Scale = new SVector3(1f, 1f, 1f);
             nut.GameObjects.Add(go6);
@@ -117,7 +118,7 @@ namespace Demo
                 star.HasGravity = false;
                 star.Transform.Position = new SVector3(r.Next(-200, 200), r.Next(-200, 200), r.Next(-200, 200));
                 star.Transform.Scale = new SVector3(1f, 1f, 1f);
-                star.Material = new SMaterial[]
+                star.Materials = new SMaterial[]
                 {
                     new SMaterial()
                     {
@@ -137,13 +138,15 @@ namespace Demo
             // pew pew
             Game.MouseLeftDown += (o, l) =>
             {
-                GameObject go2 = GameObject.CreateUsingMesh(StandarizedShapes.Sphere, "Mesh");
+                GameObject go2 = GameObject.CreateUsingMesh(StandarizedShapes.Cube, "Mesh");
                 go2.Weight = 5f;
                 go2.Transform.Position = Game.Player.PlayerPosition;
                 go2.Transform.Scale = new SVector3(1f, 1f, 1f);
                 go2.InitPhysics();
                 go2.ApplyImpulse(Game.Player.CameraForward * 300f);
-                go2.Material = new[] { SMaterial.Create(STexture.Load("texture.png")) };
+                go2.Materials = new[] { SMaterial.Create(STexture.Load("texture.png")) };
+                go2.Materials[0].Emissive = new(0f, 0f, 0f, 0f);
+                go2.Materials[0].Specular = new(255f, 255f, 255f, 255f);
                 Game.ActiveScene.GameObjects.Add(go2);
                 source.Position = Game.Player.PlayerPosition;
                 source.Play();

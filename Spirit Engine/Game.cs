@@ -561,7 +561,6 @@ namespace Realsphere.Spirit
         [STAThread]
         static void InputThread()
         {
-            SVector3 lastMoveDir = new();
             while (app == null) { }
             while (app.Window == null) { }
 
@@ -594,7 +593,6 @@ namespace Realsphere.Spirit
                     if (Player.Grounded)
                     {
                         Player.rigidBody.LinearVelocity = new(moveDir.X, Player.rigidBody.LinearVelocity.Y, moveDir.Z);
-                        lastMoveDir = moveDir;
                     }else
                     {
                         float airMovementSpeed = Player.AirControl * 0.00005f;

@@ -83,16 +83,6 @@ namespace Realsphere.Spirit.Properties {
         /// <summary>
         ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
         /// </summary>
-        internal static byte[] dxmesh {
-            get {
-                object obj = ResourceManager.GetObject("dxmesh", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
-        /// </summary>
         internal static byte[] flac {
             get {
                 object obj = ResourceManager.GetObject("flac", resourceCulture);
@@ -136,16 +126,6 @@ namespace Realsphere.Spirit.Properties {
         internal static byte[] ogg {
             get {
                 object obj = ResourceManager.GetObject("ogg", resourceCulture);
-                return ((byte[])(obj));
-            }
-        }
-        
-        /// <summary>
-        ///   Sucht eine lokalisierte Ressource vom Typ System.Byte[].
-        /// </summary>
-        internal static byte[] PhysicsDebug {
-            get {
-                object obj = ResourceManager.GetObject("PhysicsDebug", resourceCulture);
                 return ((byte[])(obj));
             }
         }

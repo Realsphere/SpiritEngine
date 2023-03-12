@@ -124,9 +124,6 @@
   <data name="d3dcsx_46" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\d3dcsx_46.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
-  <data name="PhysicsDebug" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\PhysicsDebug.hlsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
   <data name="SDPX" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\SDPX.hlsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
@@ -168,9 +165,6 @@
   </data>
   <data name="SDRDS" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\SDRDS.hlsl;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
-  </data>
-  <data name="dxmesh" type="System.Resources.ResXFileRef, System.Windows.Forms">
-    <value>..\Resources\dxmesh.exe;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
   </data>
   <data name="rsdx" type="System.Resources.ResXFileRef, System.Windows.Forms">
     <value>..\Resources\rsdx.dll;System.Byte[], mscorlib, Version=4.0.0.0, Culture=neutral, PublicKeyToken=b77a5c561934e089</value>
