@@ -52,8 +52,7 @@ namespace Demo
 
             AudioSource source = new("whoosh.wav");
 
-            //GameObject go12 = GameObject.CreateUsingMesh(SModel.FromOBJ("untitled.obj"), "sheep");
-            GameObject go12 = GameObject.CreateUsingMesh(SModel.FromCMO("Character.cmo"), "sheep");
+            GameObject go12 = GameObject.CreateUsingMesh(SModel.FromOBJ("untitled.obj"), "sheep");
             go12.Weight = 0f;
             go12.HasGravity = false;
             go12.HasCollision = false;
@@ -71,7 +70,7 @@ namespace Demo
                 new()
                 {
                     Ambient = new SColor(255f, 255f, 255f, 255f),
-                    Diffuse = new SColor(255f, 255f, 255f, 255f),
+                    Diffuse = new SColor(100f, 100f, 100f, 100f),
                     Emissive = new SColor(255f, 255f, 255f, 0f),
                     Specular = new SColor(255f, 255f, 255f, 255f),
                     SpecularPower = 20f

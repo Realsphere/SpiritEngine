@@ -595,7 +595,7 @@ namespace Realsphere.Spirit
                         Player.rigidBody.LinearVelocity = new(moveDir.X, Player.rigidBody.LinearVelocity.Y, moveDir.Z);
                     }else
                     {
-                        float airMovementSpeed = Player.AirControl * 0.00005f;
+                        float airMovementSpeed = Player.AirControl * 0.000025f;
                         var newVelocity = Player.rigidBody.LinearVelocity + ((System.Numerics.Vector3)moveDir * airMovementSpeed);
                         newVelocity = new(newVelocity.X, Player.rigidBody.LinearVelocity.Y, newVelocity.Z);
                         Player.rigidBody.LinearVelocity = newVelocity;

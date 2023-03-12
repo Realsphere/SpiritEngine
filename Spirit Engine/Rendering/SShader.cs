@@ -168,6 +168,19 @@ namespace Realsphere.Spirit.Rendering
             }
         }
 
+        public static SShader Reflective
+        {
+            get
+            {
+                return new()
+                {
+                    vs = Game.app.vertexShader,
+                    layout = Game.app.vertexLayout,
+                    ps = Game.app.reflectivePS
+                };
+            }
+        }
+
         public static SShader DefaultShader
         {
             get

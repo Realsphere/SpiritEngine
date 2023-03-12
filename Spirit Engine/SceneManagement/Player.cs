@@ -22,7 +22,7 @@ namespace Realsphere.Spirit.SceneManagement
 
                 var rayStart = rbPosition;
 
-                var rayEnd = rbPosition - new System.Numerics.Vector3(0, PlayerHeight + 0.01f, 0);
+                var rayEnd = rbPosition - new System.Numerics.Vector3(0, PlayerHeight + 0.0001f, 0);
 
                 using (ClosestRayResultCallback rayCallback = new ClosestRayResultCallback(ref rayStart, ref rayEnd))
                 {

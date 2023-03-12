@@ -50,6 +50,8 @@ namespace Realsphere.Spirit
 
         internal PixelShader simpleDiffusePS;
 
+        internal PixelShader reflectivePS;
+
         internal VertexShader simpleDiffuseVS;
 
         internal InputLayout vertexLayout;
@@ -296,6 +298,9 @@ namespace Realsphere.Spirit
 
             using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRDS), "PSMain", "ps_5_0"))
                 simpleDiffusePS = ToDispose(new PixelShader(device, bytecode));
+
+            using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRPX).Substring(1), "PSMain", "ps_5_0"))
+                reflectivePS = ToDispose(new PixelShader(device, bytecode));
 
             perObjectBuffer = ToDispose(new SharpDX.Direct3D11.Buffer(device, Utilities.SizeOf<ConstantBuffers.PerObject>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
