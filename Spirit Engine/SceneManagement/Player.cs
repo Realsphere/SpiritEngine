@@ -123,6 +123,13 @@ namespace Realsphere.Spirit.SceneManagement
                 app.cameraBoundingSphere = new BoundingSphere(new(Game.Player.PlayerPosition.X, Game.Player.PlayerPosition.Y + Game.Player.PlayerHeight, Game.Player.PlayerPosition.Z), Game.Player.CameraFar);
             }
         }
+        public SVector3 CameraPosition
+        {
+            get
+            {
+                return new(playerpos.X, playerpos.Y + PlayerHeight, playerpos.Z);
+            }
+        }
         public SVector3 PlayerForward
         {
             get

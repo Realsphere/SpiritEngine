@@ -75,22 +75,29 @@ float3 SpecularBlinnPhong(float3 normal, float3 toLight, float3 toEye)
 
 float4 PSMain(PixelShaderInput pixel) : SV_Target
 {
+    float3 normal = normalize(pixel.WorldNormal);
+    float3 toEye = normalize(CameraPosition - pixel.WorldPosition);
+    float3 toLight = normalize(-Light.Direction);
+    //float3 diffuse = Lambert(pixel.Diffuse, normal, toLight);
+    float3 diffuse = pixel.Diffuse;
+    float3 specular = SpecularBlinnPhong(normal, toLight, toEye);
+
     float4 sample = (float4)1.0f;
     if (HasTexture)
         sample = Texture0.Sample(Sampler, pixel.TextureUV);
 
-    float3 color = float3(0, 0, 0);
-    float alpha = 1.0f;
+    float3 color = diffuse;
+    float alpha = pixel.Diffuse.a;
 
     if (HasTexture)
     {
-        color = pixel.Diffuse;
+        color = sample.rgb;
         alpha = sample.a;
-        return float4(color, alpha);
     }
-    else
-        return pixel.Diffuse;
 
+    color = (saturate(diffuse) * sample.rgb + specular) * Light.Color.rgb;
+
+    return float4(color, alpha);
 }
 
 PixelShaderInput VSMain(VertexShaderInput vertex)

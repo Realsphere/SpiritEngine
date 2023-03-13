@@ -70,7 +70,7 @@ namespace Demo
                 new()
                 {
                     Ambient = new SColor(255f, 255f, 255f, 255f),
-                    Diffuse = new SColor(100f, 100f, 100f, 100f),
+                    Diffuse = new SColor(100f, 100f, 100f, 255f),
                     Emissive = new SColor(255f, 255f, 255f, 0f),
                     Specular = new SColor(255f, 255f, 255f, 255f),
                     SpecularPower = 20f
@@ -78,6 +78,7 @@ namespace Demo
             };
             go1.Transform.Position = new SVector3(15f, 5f, 15f);
             go1.Transform.Scale = new SVector3(1f, 1f, 1f);
+            go1.Shader = SShader.SimpleDiffuse;
             nut.GameObjects.Add(go1);
             GameObject go3 = GameObject.CreateUsingMesh(cube, "Mesh1");
             go3.Weight = 0f;
@@ -130,6 +131,9 @@ namespace Demo
                 };
                 nut.GameObjects.Add(star);
             }
+
+            nut.Light.LightColor = new(150f, 150f, 150f, 255f);
+            nut.Light.LightDirection = new(50f, 50f, 50f);
 
             // Set scene
             Game.ActiveScene = nut;

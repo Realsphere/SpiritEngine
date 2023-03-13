@@ -498,10 +498,10 @@ namespace Realsphere.Spirit
                 var worldRotation = Matrix.RotationAxis(Vector3.UnitY, time);
 
                 var perFrame = new ConstantBuffers.PerFrame();
-                perFrame.Light.Color = new(150f / 255f);
-                var lightDir = Vector3.Transform(new(50f, 50f, 50f), worldMatrix);
-                perFrame.Light.Direction = new Vector3(-1f, -1f, -1f);
-                perFrame.CameraPosition = Game.Player.PlayerPosition.sharpDXVector;
+                perFrame.Light.Color = Game.ActiveScene.Light.LightColor.sharpdxcolor;
+                var lightDir = ((Vector3)Vector3.Transform(Game.ActiveScene.Light.LightDirection.sharpDXVector, worldMatrix));
+                perFrame.Light.Direction = lightDir;
+                perFrame.CameraPosition = Game.Player.CameraPosition.sharpDXVector;
                 context.UpdateSubresource(ref perFrame, perFrameBuffer);
                 try
                 {
