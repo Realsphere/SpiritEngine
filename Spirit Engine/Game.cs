@@ -425,7 +425,7 @@ namespace Realsphere.Spirit
                 appThread.SetApartmentState(ApartmentState.STA);
                 appThread.Start();
                 Logger.Log("Finished!", LogLevel.Information);
-                while (!IsRunning) { }
+                while (!IsRunning) { Thread.Sleep(5); }
                 app.Window.MouseDown += (o, e) =>
                 {
                     if (e.Button == MouseButtons.Left && MouseLeftDown != null) MouseLeftDown.Invoke(null, e.Location);

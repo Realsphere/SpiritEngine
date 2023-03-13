@@ -416,6 +416,7 @@ namespace Realsphere.Spirit
 
         internal override void Run()
         {
+            Console.WriteLine("cfps");
             fps = new FpsCounter(this);
 
             var worldMatrix = Matrix.Identity;
@@ -471,12 +472,10 @@ namespace Realsphere.Spirit
             PhysicsEngine.init();
             #region Render loop
             Logger.Log("Initialisation finished, starting Render Loop!", LogLevel.Information);
+            Game.IsRunning = true;
             RenderLoop.Run(Window, () =>
             {
                 if (pauseRendering) return;
-
-                if (!Game.IsRunning)
-                    Game.IsRunning = true;
 
                 var context = DeviceManager.Direct3DContext;
 

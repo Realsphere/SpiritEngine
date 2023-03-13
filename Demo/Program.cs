@@ -52,15 +52,6 @@ namespace Demo
 
             AudioSource source = new("whoosh.wav");
 
-            GameObject go12 = GameObject.CreateUsingMesh(SModel.FromOBJ("untitled.obj"), "sheep");
-            go12.Weight = 0f;
-            go12.HasGravity = false;
-            go12.HasCollision = false;
-            go12.Transform.Position = new SVector3(15f, 10f, 25f);
-            go12.Transform.Scale = new SVector3(1f, 1f, 1f);
-            go12.Shader = SShader.SimpleDiffuse;
-            nut.GameObjects.Add(go12);
-
             // Cube 1
             GameObject go1 = GameObject.CreateUsingMesh(cube, "Mesh11");
             go1.Weight = 0f;
@@ -113,6 +104,7 @@ namespace Demo
             Random r = new Random();
             for (int i = 0; i < 5000; i++)
             {
+                Console.WriteLine("Generating Scene " + MathF.Round((i + 1f / 5000f) / 50f) + "% (" + (i + 1) + ")");
                 GameObject star = GameObject.CreateUsingMesh(cube, "Index: " + i);
                 star.Weight = 1f;
                 star.HasGravity = false;
