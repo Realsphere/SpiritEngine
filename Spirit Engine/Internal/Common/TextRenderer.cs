@@ -11,6 +11,7 @@ using SharpDX.DirectWrite;
 using Matrix = SharpDX.Matrix;
 using TextAntialiasMode = SharpDX.Direct2D1.TextAntialiasMode;
 using System.Runtime.InteropServices;
+using Realsphere.Spirit.SceneManagement;
 
 namespace Realsphere.Spirit.RenderingCommon
 {
@@ -24,11 +25,7 @@ namespace Realsphere.Spirit.RenderingCommon
         protected string font;
         protected Color4 color;
         protected int lineLength;
-
-        protected override void Dispose(bool disposeManagedResources)
-        {
-            base.Dispose(disposeManagedResources);
-        }
+        DisposeCollector dc;
 
         /// <summary>
         /// Initializes a new instance of <see cref="TextRenderer"/> class.
@@ -36,6 +33,7 @@ namespace Realsphere.Spirit.RenderingCommon
         internal TextRenderer(string font, Color4 color, Point location, int size = 16, int lineLength = 500)
             : base()
         {
+            dc = new();
             if (!String.IsNullOrEmpty(font))
                 this.font = font;
             else
@@ -58,11 +56,11 @@ namespace Realsphere.Spirit.RenderingCommon
         {
             base.CreateDeviceDependentResources();
 
-            RemoveAndDispose(ref sceneColorBrush);
-            RemoveAndDispose(ref textFormat);
+            dc.RemoveAndDispose(ref sceneColorBrush);
+            dc.RemoveAndDispose(ref textFormat);
 
-            sceneColorBrush = ToDispose(new SolidColorBrush(this.DeviceManager.Direct2DContext, this.color));
-            textFormat = ToDispose(new TextFormat(this.DeviceManager.DirectWriteFactory, font, Size) { TextAlignment = TextAlignment.Leading, ParagraphAlignment = ParagraphAlignment.Center });
+            sceneColorBrush = dc.Collect(new SolidColorBrush(this.DeviceManager.Direct2DContext, this.color));
+            textFormat = dc.Collect(new TextFormat(this.DeviceManager.DirectWriteFactory, font, Size) { TextAlignment = TextAlignment.Leading, ParagraphAlignment = ParagraphAlignment.Center });
 
             this.DeviceManager.Direct2DContext.TextAntialiasMode = TextAntialiasMode.Grayscale;
         }
@@ -71,7 +69,7 @@ namespace Realsphere.Spirit.RenderingCommon
         /// Render
         /// </summary>
         /// <param name="target">The target to render to (the same device manager must be used in both)</param>
-        protected override void DoRender()
+        protected override void DoRender(GameObject obj)
         {
             if (String.IsNullOrEmpty(Text))
                 return;
@@ -79,9 +77,14 @@ namespace Realsphere.Spirit.RenderingCommon
             var context2D = DeviceManager.Direct2DContext;
 
             context2D.BeginDraw();
-            context2D.Transform = Matrix.Identity;
+            context2D.Transform = Matrix3x2.Identity;
             context2D.DrawText(Text, textFormat, new RectangleF(Location.X, Location.Y, Location.X + lineLength, Location.Y + 16), sceneColorBrush);
             context2D.EndDraw();
+        }
+
+        public override void Dispose()
+        {
+            dc.Dispose();
         }
     }
 }

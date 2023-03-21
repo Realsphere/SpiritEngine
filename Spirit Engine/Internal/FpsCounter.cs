@@ -1,4 +1,5 @@
 ﻿using Realsphere.Spirit.RenderingCommon;
+using Realsphere.Spirit.SceneManagement;
 using SharpDX;
 using System;
 using System.Collections.Generic;
@@ -41,7 +42,7 @@ namespace Realsphere.Spirit.Internal
             }
 
             rendrr.Text = _fps + " FPS";
-            rendrr.Render();
+            rendrr.Render((GameObject)null);
         }
     }
 }

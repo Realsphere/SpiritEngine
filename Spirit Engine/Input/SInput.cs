@@ -1,5 +1,4 @@
 ﻿using Realsphere.Spirit.Mathematics;
-using SharpDX;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -79,19 +78,6 @@ namespace Realsphere.Spirit.Input
             F11 = Key.F11,
             F12 = Key.F12,
             Space = Key.Space,
-        }
-
-        internal static EventHandler<SKey> KeyDown;
-        internal static EventHandler<SKey> KeyUp;
-
-        public static void SetKeyDownHandler(EventHandler<SKey> handler)
-        {
-            KeyDown = handler;
-        }
-
-        public static void SetKeyUpHandler(EventHandler<SKey> handler)
-        {
-            KeyUp = handler;
         }
 
         [STAThread]

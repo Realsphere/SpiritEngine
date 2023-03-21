@@ -30,7 +30,7 @@ namespace Realsphere.Spirit.RenderingCommon
             CompilationResult result = null;
 
             // Compile the shader file
-            ShaderFlags flags = ShaderFlags.None;
+            ShaderFlags flags = ShaderFlags.Debug;
 #if DEBUG
             flags |= ShaderFlags.Debug | ShaderFlags.SkipOptimization;
 #endif
@@ -57,7 +57,7 @@ namespace Realsphere.Spirit.RenderingCommon
             CompilationResult result = null;
 
             // Compile the shader file
-            ShaderFlags flags = ShaderFlags.None;
+            ShaderFlags flags = ShaderFlags.Debug;
 #if DEBUG
             flags |= ShaderFlags.Debug | ShaderFlags.SkipOptimization;
 #endif

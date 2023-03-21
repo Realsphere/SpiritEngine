@@ -2,18 +2,19 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-
+using SharpDX;
 using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 
 namespace Realsphere.Spirit.RenderingCommon
 {
-    internal class DeviceManager: SharpDX.Component
+    internal class DeviceManager : IDisposable
     {
         // Direct3D Objects
         protected SharpDX.Direct3D11.Device1 d3dDevice;
         protected SharpDX.Direct3D11.DeviceContext1 d3dContext;
         protected float dpi;
+        internal DisposeCollector dc;
 
         // Declare Direct2D Objects
         protected SharpDX.Direct2D1.Factory1 d2dFactory;
@@ -111,6 +112,7 @@ namespace Realsphere.Spirit.RenderingCommon
         /// <param name="window">Window to receive the rendering</param>
         internal virtual void Initialize(float dpi = 96.0f)
         {
+            dc = new();
             CreateInstances();
 
             if (OnInitialize != null)
@@ -128,28 +130,28 @@ namespace Realsphere.Spirit.RenderingCommon
         protected virtual void CreateInstances()
         {
             // Dispose previous references and set to null
-            RemoveAndDispose(ref d3dDevice);
-            RemoveAndDispose(ref d3dContext);
-            RemoveAndDispose(ref d2dDevice);
-            RemoveAndDispose(ref d2dContext);
-            RemoveAndDispose(ref d2dFactory);
-            RemoveAndDispose(ref dwriteFactory);
-            RemoveAndDispose(ref wicFactory);
+            dc.RemoveAndDispose(ref d3dDevice);
+            dc.RemoveAndDispose(ref d3dContext);
+            dc.RemoveAndDispose(ref d2dDevice);
+            dc.RemoveAndDispose(ref d2dContext);
+            dc.RemoveAndDispose(ref d2dFactory);
+            dc.RemoveAndDispose(ref dwriteFactory);
+            dc.RemoveAndDispose(ref wicFactory);
 
             #region Create Direct3D 11.1 device and retrieve device context
 
             // Bgra performs better especially with Direct2D software
             // render targets
             var creationFlags = DeviceCreationFlags.BgraSupport;
-
+            creationFlags |= DeviceCreationFlags.Debug;
             // Retrieve the Direct3D 11.1 device and device context
             using (var device = new Device(DriverType.Hardware, creationFlags, Direct3DFeatureLevels))
             {
-                d3dDevice = ToDispose(device.QueryInterface<Device1>());
+                d3dDevice = dc.Collect(device.QueryInterface<Device1>());
             }
 
             // Get Direct3D 11.1 context
-            d3dContext = ToDispose(d3dDevice.ImmediateContext.QueryInterface<DeviceContext1>());
+            d3dContext = dc.Collect(d3dDevice.ImmediateContext.QueryInterface<DeviceContext1>());
             #endregion
 
             #region Create Direct2D device and context
@@ -157,20 +159,25 @@ namespace Realsphere.Spirit.RenderingCommon
             var debugLevel = SharpDX.Direct2D1.DebugLevel.None;
 
             // Allocate new references
-            d2dFactory = ToDispose(new SharpDX.Direct2D1.Factory1(SharpDX.Direct2D1.FactoryType.SingleThreaded, debugLevel));
-            dwriteFactory = ToDispose(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Shared));
-            wicFactory = ToDispose(new SharpDX.WIC.ImagingFactory2());
+            d2dFactory = dc.Collect(new SharpDX.Direct2D1.Factory1(SharpDX.Direct2D1.FactoryType.SingleThreaded, debugLevel));
+            dwriteFactory = dc.Collect(new SharpDX.DirectWrite.Factory(SharpDX.DirectWrite.FactoryType.Shared));
+            wicFactory = dc.Collect(new SharpDX.WIC.ImagingFactory2());
 
             // Create Direct2D device
             using (var dxgiDevice = d3dDevice.QueryInterface<SharpDX.DXGI.Device>())
             {
-                d2dDevice = ToDispose(new SharpDX.Direct2D1.Device(d2dFactory, dxgiDevice));
+                d2dDevice = dc.Collect(new SharpDX.Direct2D1.Device(d2dFactory, dxgiDevice));
             }
 
             // Create Direct2D context
-            d2dContext = ToDispose(new SharpDX.Direct2D1.DeviceContext(d2dDevice, SharpDX.Direct2D1.DeviceContextOptions.None));
+            d2dContext = dc.Collect(new SharpDX.Direct2D1.DeviceContext(d2dDevice, SharpDX.Direct2D1.DeviceContextOptions.None));
             #endregion
             Game.RGUI = new RGUI.RGUI(d2dDevice);
+        }
+
+        public void Dispose()
+        {
+            dc.Dispose();
         }
     }
 }

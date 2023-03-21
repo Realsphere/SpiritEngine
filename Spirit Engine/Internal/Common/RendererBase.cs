@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Realsphere.Spirit.RenderingCommon
 {
-    internal abstract class RendererBase: Component
+    internal abstract class RendererBase: IDisposable
     {
         internal DeviceManager DeviceManager { get; set; }
         internal D3DApplicationBase Target { get; set; }
@@ -95,17 +95,17 @@ namespace Realsphere.Spirit.RenderingCommon
         /// <summary>
         /// Render a frame
         /// </summary>
-        internal void Render()
+        internal void Render(GameObject obj)
         {
             if (Show)
-                DoRender();
+                DoRender(obj);
         }
 
         /// <summary>
         /// Each descendant of RendererBase performs a frame
         /// render within the implementation of DoRender
         /// </summary>
-        protected abstract void DoRender();
+        protected abstract void DoRender(GameObject obj);
 
         internal void Render(SharpDX.Direct3D11.DeviceContext context)
         {
@@ -117,5 +117,7 @@ namespace Realsphere.Spirit.RenderingCommon
         {
 
         }
+
+        public virtual void Dispose() { }
     }
 }

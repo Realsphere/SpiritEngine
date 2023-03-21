@@ -15,7 +15,8 @@ namespace Realsphere.Spirit.SceneManagement
         public List<Trigger> Triggers = new List<Trigger>();
         public SColor SkyBoxColor;
         public int SubStepCount;
-        public Light Light;
+        //public List<Light> Lights;
+        public DirectionalLight Light;
 
         public GameObject GetByName(string s)
         {
@@ -27,8 +28,8 @@ namespace Realsphere.Spirit.SceneManagement
         public Scene()
         {
             SkyBoxColor = new SColor(0, 0, 0, 1f);
-            Light = new Light();
             SubStepCount = Environment.ProcessorCount / 2;
+            Light = new();
         }
     }
 }

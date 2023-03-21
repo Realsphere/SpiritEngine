@@ -1,24 +1,26 @@
-﻿using Realsphere.Spirit.BulletPhysics;
+﻿#define SpiritDebug
 using Realsphere.Spirit.Internal;
 using Realsphere.Spirit.Mathematics;
 using Realsphere.Spirit.Physics;
 using Realsphere.Spirit.RenderingCommon;
 using Realsphere.Spirit.SceneManagement;
 using SharpDX;
+using SharpDX.Direct3D;
+using SharpDX.Direct3D11;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Drawing;
 using System.IO;
 using System.Linq;
-using System.Numerics;
+using System.Drawing;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Forms;
 using System.Windows.Input;
-using static System.Windows.Forms.VisualStyles.VisualStyleElement.TaskbarClock;
 using Cursor = System.Windows.Forms.Cursor;
+using SharpDX.DirectInput;
+using Realsphere.Spirit.Input;
 
 namespace Realsphere.Spirit
 {
@@ -225,6 +227,16 @@ namespace Realsphere.Spirit
 
         internal static DeviceManager deviceManager;
         internal static bool PhysicsDebug = false;
+        internal static DirectInput directinput;
+
+        public static IntPtr DirectInput
+        {
+            get
+            {
+                if (directinput == null) return IntPtr.Zero;
+                else return directinput.NativePointer;
+            }
+        }
 
         public static IntPtr Direct2DDevice
         {
@@ -319,6 +331,14 @@ namespace Realsphere.Spirit
             app.Window.ClientSize = new(res.Width, res.Height);
         }
 
+        public static bool PausePhysics
+        {
+            get
+                => PhysicsEngine.pause;
+            set
+                { PhysicsEngine.pause = value; }
+        }
+
         /// <summary>
         /// Opens a Window and starts rendering using Direct3D9.
         /// </summary>
@@ -403,6 +423,9 @@ namespace Realsphere.Spirit
                 t3.SetApartmentState(ApartmentState.STA);
                 t3.Start();
                 Logger.Log("DirectX Initializing", LogLevel.Information);
+                Logger.Log("Initializing DirectInput", LogLevel.Information);
+                directinput = new();
+                Logger.Log("Finished initializing DirectInput!", LogLevel.Information);
                 appThread = new Thread(() =>
                 {
 #if !SpiritDebug
@@ -563,7 +586,6 @@ namespace Realsphere.Spirit
         {
             while (app == null) { }
             while (app.Window == null) { }
-
             while (!app.Window.IsDisposed)
             {
                 if (!CameraLookActive) Cursor.Show();
@@ -603,19 +625,19 @@ namespace Realsphere.Spirit
                     continue;
                 }
 
-                if (Keyboard.IsKeyDown(Key.A))
+                if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.A))
                 {
                     Game.Player.PlayerPosition -= Player.CameraRight * speed;
                 }
-                if (Keyboard.IsKeyDown(Key.D))
+                if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.D))
                 {
                     Game.Player.PlayerPosition += Player.CameraRight * speed;
                 }
-                if (Keyboard.IsKeyDown(Key.W))
+                if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.W))
                 {
                     Game.Player.PlayerPosition += app.cameraTarget * speed;
                 }
-                if (Keyboard.IsKeyDown(Key.S))
+                if (System.Windows.Input.Keyboard.IsKeyDown(System.Windows.Input.Key.S))
                 {
                     Game.Player.PlayerPosition -= app.cameraTarget * speed;
                 }

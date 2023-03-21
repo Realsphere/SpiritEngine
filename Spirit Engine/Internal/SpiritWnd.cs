@@ -50,13 +50,11 @@ namespace Realsphere.Spirit.Internal
 
         private void SpiritWnd_KeyDown(object sender, KeyEventArgs e)
         {
-            if (SKeyboard.KeyDown != null) SKeyboard.KeyDown.Invoke(null, (SKeyboard.SKey)e.KeyData);
             if (Game.KeyDown != null) Game.KeyDown.Invoke(null, (int)e.KeyData);
         }
 
         private void SpiritWnd_KeyUp(object sender, KeyEventArgs e)
         {
-            if (SKeyboard.KeyUp != null) SKeyboard.KeyUp.Invoke(null, (SKeyboard.SKey)e.KeyData);
             if (Game.KeyUp != null) Game.KeyUp.Invoke(null, (int)e.KeyData);
         }
     }

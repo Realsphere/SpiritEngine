@@ -11,12 +11,6 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Reference Include="AssimpNet">
-      <HintPath>..\Lib\AssimpNet.dll</HintPath>
-    </Reference>
-  </ItemGroup>
-
-  <ItemGroup>
     <None Update="ambient.wav">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>

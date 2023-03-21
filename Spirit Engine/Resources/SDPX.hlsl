@@ -16,13 +16,13 @@ struct DirectionalLight
     float3 Direction;
 };
 
-cbuffer PerFrame: register (b1)
+cbuffer PerFrame : register(b1)
 {
     DirectionalLight Light;
     float3 CameraPosition;
 };
 
-cbuffer PerMaterial : register (b2)
+cbuffer PerMaterial : register(b2)
 {
     float4 MaterialAmbient;
     float4 MaterialDiffuse;
@@ -38,14 +38,14 @@ struct VertexShaderInput
     float4 Position : SV_Position;
     float3 Normal : NORMAL;
     float4 Color : COLOR0;
-    float2 TextureUV: TEXCOORD0;
+    float2 TextureUV : TEXCOORD0;
 };
 
 struct PixelShaderInput
 {
     float4 Position : SV_Position;
     float4 Diffuse : COLOR;
-    float2 TextureUV: TEXCOORD0;
+    float2 TextureUV : TEXCOORD0;
 
     float3 WorldNormal : NORMAL;
     float3 WorldPosition : WORLDPOS;
@@ -79,7 +79,7 @@ float4 PSMain(PixelShaderInput pixel) : SV_Target
     float3 toEye = normalize(CameraPosition - pixel.WorldPosition);
     float3 toLight = normalize(-Light.Direction);
 
-    float4 sample = (float4)1.0f;
+    float4 sample = (float4) 1.0f;
     if (HasTexture)
         sample = Texture0.Sample(Sampler, pixel.TextureUV);
 

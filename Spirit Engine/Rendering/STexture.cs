@@ -7,6 +7,9 @@ using System.IO;
 using SharpDX.DXGI;
 using SharpDX.IO;
 using System;
+using System.Windows.Navigation;
+using SharpDX.Direct3D;
+using Realsphere.Spirit.Internal.Common;
 
 namespace Realsphere.Spirit.Rendering
 {
@@ -23,7 +26,7 @@ namespace Realsphere.Spirit.Rendering
         {
             STexture st = new STexture();
 
-            st.texture = ShaderResourceView.FromFile(Game.deviceManager.Direct3DDevice, fileName);
+            st.texture = TextureLoader.ShaderResourceViewFromFile(Game.deviceManager.Direct3DDevice, fileName);
             ImagingFactory imagingFactory = new ImagingFactory();
             NativeFileStream fileStream = new NativeFileStream(fileName,
                 NativeFileMode.Open, NativeFileAccess.Read);
@@ -34,7 +37,20 @@ namespace Realsphere.Spirit.Rendering
             FormatConverter converter = new FormatConverter(imagingFactory);
             converter.Initialize(frame, SharpDX.WIC.PixelFormat.Format32bppPRGBA);
 
-            st.d2dtext = SharpDX.Direct2D1.Bitmap1.FromWicBitmap(Game.deviceManager.Direct2DContext, converter);
+            st.d2dtext = SharpDX.Direct2D1.Bitmap.FromWicBitmap(Game.deviceManager.Direct2DContext, converter); var textureDescription = new Texture2DDescription()
+            {
+                Width = frame.Size.Width,
+                Height = frame.Size.Height,
+                ArraySize = 1,
+                BindFlags = BindFlags.ShaderResource,
+                Usage = ResourceUsage.Default,
+                CpuAccessFlags = CpuAccessFlags.None,
+                Format = SharpDX.DXGI.Format.R8G8B8A8_UNorm,
+                MipLevels = 1,
+                OptionFlags = ResourceOptionFlags.None,
+                SampleDescription = new SharpDX.DXGI.SampleDescription(1, 0),
+            };
+
             imagingFactory.Dispose();
             fileStream.Dispose();
             bitmapDecoder.Dispose();
@@ -60,10 +76,6 @@ namespace Realsphere.Spirit.Rendering
         {
             STexture st = new STexture();
 
-            MemoryStream str = new(data);
-            st.texture = ShaderResourceView.FromStream(Game.deviceManager.Direct3DDevice, str, data.Length);
-            str.Dispose();
-
             st.sampler = new SamplerState(Game.deviceManager.Direct3DDevice, new SamplerStateDescription()
             {
                 AddressU = TextureAddressMode.Wrap,
@@ -82,6 +94,11 @@ namespace Realsphere.Spirit.Rendering
             converter.Initialize(frame, SharpDX.WIC.PixelFormat.Format32bppPRGBA);
 
             st.d2dtext = SharpDX.Direct2D1.Bitmap1.FromWicBitmap(Game.deviceManager.Direct2DContext, converter);
+
+            MemoryStream str = new(data);
+            st.texture = TextureLoader.ShaderResourceViewFromStream(Game.deviceManager.Direct3DDevice, str, st.d2dtext.Size.Width, st.d2dtext.Size.Height);
+            str.Dispose();
+
             imagingFactory.Dispose();
             stream.Dispose();
             bitmapDecoder.Dispose();

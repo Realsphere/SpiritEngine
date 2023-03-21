@@ -19,9 +19,10 @@ namespace Realsphere.Spirit.RenderingCommon
 {
     /// <summary>
     /// </summary>
-    internal abstract class D3DApplicationBase: Component
+    internal abstract class D3DApplicationBase: IDisposable
     {
         internal DeviceManager _deviceManager;
+        internal DisposeCollector dc;
         internal SharpDX.DXGI.SwapChain1 _swapChain;
 
         internal SharpDX.Direct3D11.RenderTargetView _renderTargetView;
@@ -117,7 +118,8 @@ namespace Realsphere.Spirit.RenderingCommon
             {
                 if (_renderTargetView != value)
                 {
-                    RemoveAndDispose(ref _renderTargetView);
+                    if (_renderTargetView != null)
+                        dc.RemoveAndDispose(ref _renderTargetView);
                     _renderTargetView = value;
                 }
             }
@@ -133,7 +135,7 @@ namespace Realsphere.Spirit.RenderingCommon
             {
                 if (_backBuffer != value)
                 {
-                    RemoveAndDispose(ref _backBuffer);
+                    if(_backBuffer != null) dc.RemoveAndDispose(ref _backBuffer);
                     _backBuffer = value;
                 }
             }
@@ -149,7 +151,7 @@ namespace Realsphere.Spirit.RenderingCommon
             {
                 if (_depthBuffer != value)
                 {
-                    RemoveAndDispose(ref _depthBuffer);
+                    if (_depthBuffer != null) dc.RemoveAndDispose(ref _depthBuffer);
                     _depthBuffer = value;
                 }
             }
@@ -165,7 +167,7 @@ namespace Realsphere.Spirit.RenderingCommon
             {
                 if (_depthStencilView != value)
                 {
-                    RemoveAndDispose(ref _depthStencilView);
+                    if (_depthStencilView != null) dc.RemoveAndDispose(ref _depthStencilView);
                     _depthStencilView = value;
                 }
             }
@@ -181,7 +183,8 @@ namespace Realsphere.Spirit.RenderingCommon
             {
                 if (_bitmapTarget != value)
                 {
-                    RemoveAndDispose(ref _bitmapTarget);
+                    if (_bitmapTarget != null)
+                        dc.RemoveAndDispose(ref _bitmapTarget);
                     _bitmapTarget = value;
                 }
             }
@@ -192,9 +195,11 @@ namespace Realsphere.Spirit.RenderingCommon
         /// </summary>
         internal D3DApplicationBase()
         {
+            dc = new();
+
             // Create our device manager instance.
             // This encapsulates the creation of Direct3D and Direct2D devices
-            _deviceManager = ToDispose(new DeviceManager());
+            _deviceManager = dc.Collect(new DeviceManager());
 
             // If the device needs to be reinitialized, make sure we
             // are able to recreate our device dependent resources.
@@ -255,7 +260,7 @@ namespace Realsphere.Spirit.RenderingCommon
             if (_swapChain != null)
             {
                 // Release the swap chain
-                RemoveAndDispose(ref _swapChain);
+                dc.RemoveAndDispose(ref _swapChain);
 
                 // Force reinitialize size dependent resources
                 SizeChanged(true);
@@ -275,11 +280,11 @@ namespace Realsphere.Spirit.RenderingCommon
             var d2dContext = DeviceManager.Direct2DContext;
 
             // Before the swapchain can resize all the buffers must be released
-            RemoveAndDispose(ref _backBuffer);
-            RemoveAndDispose(ref _renderTargetView);
-            RemoveAndDispose(ref _depthStencilView);
-            RemoveAndDispose(ref _depthBuffer);
-            RemoveAndDispose(ref _bitmapTarget);
+            if(_backBuffer != null) dc.RemoveAndDispose(ref _backBuffer);
+            if(_renderTargetView != null) dc.RemoveAndDispose(ref _renderTargetView);
+            if(_depthStencilView != null) dc.RemoveAndDispose(ref _depthStencilView);
+            if(_depthBuffer != null) dc.RemoveAndDispose(ref _depthBuffer);
+            if(_bitmapTarget != null) dc.RemoveAndDispose(ref _bitmapTarget);
             d2dContext.Target = null;
 
             #region Initialize Direct3D swap chain and render target
@@ -319,7 +324,7 @@ namespace Realsphere.Spirit.RenderingCommon
                     // The CreateSwapChain method is used so we can descend
                     // from this class and implement a swapchain for a desktop
                     // or a Windows 8 AppStore app
-                    _swapChain = ToDispose(CreateSwapChain(dxgiFactory2, device, desc));
+                    _swapChain = dc.Collect(CreateSwapChain(dxgiFactory2, device, desc));
                     //_swapChain.SetFullscreenState(true, output);
 #if !NETFX_CORE
                     // Retrieve the list of supported display modes
@@ -329,10 +334,10 @@ namespace Realsphere.Spirit.RenderingCommon
             }
 
             // Obtain the backbuffer for this window which will be the final 3D rendertarget.
-            BackBuffer = ToDispose(Texture2D.FromSwapChain<Texture2D>(_swapChain, 0));
+            BackBuffer = dc.Collect(Texture2D.FromSwapChain<Texture2D>(_swapChain, 0));
             // Create a view interface on the rendertarget to use on bind.
             if (device.NativePointer == IntPtr.Zero) return;
-            RenderTargetView = ToDispose(new RenderTargetView(device, BackBuffer));
+            RenderTargetView = dc.Collect(new RenderTargetView(device, BackBuffer));
 
             // Cache the rendertarget dimensions in our helper class for convenient use.
             var backBufferDesc = BackBuffer.Description;
@@ -353,7 +358,7 @@ namespace Realsphere.Spirit.RenderingCommon
             // Create a descriptor for the depth/stencil buffer.
             // Allocate a 2-D texture as the depth/stencil buffer.
             // Create a DSV to use on bind.
-            this.DepthBuffer = ToDispose(new Texture2D(device, new Texture2DDescription()
+            this.DepthBuffer = dc.Collect(new Texture2D(device, new Texture2DDescription()
                 {
                     Format = Format.D32_Float_S8X24_UInt,
                     ArraySize = 1,
@@ -363,7 +368,7 @@ namespace Realsphere.Spirit.RenderingCommon
                     SampleDescription = SwapChain.Description.SampleDescription,
                     BindFlags = BindFlags.DepthStencil,
                 }));
-            this.DepthStencilView = ToDispose(
+            this.DepthStencilView = dc.Collect(
                 new DepthStencilView(
                     device, 
                     DepthBuffer, 
@@ -391,7 +396,7 @@ namespace Realsphere.Spirit.RenderingCommon
             // Direct2D needs the dxgi version of the backbuffer surface pointer.
             // Get a D2D surface from the DXGI back buffer to use as the D2D render target.
             using (var dxgiBackBuffer = _swapChain.GetBackBuffer<SharpDX.DXGI.Surface>(0))
-                BitmapTarget2D = ToDispose(new SharpDX.Direct2D1.Bitmap1(d2dContext, dxgiBackBuffer, bitmapProperties));
+                BitmapTarget2D = dc.Collect(new SharpDX.Direct2D1.Bitmap1(d2dContext, dxgiBackBuffer, bitmapProperties));
 
             // So now we can set the Direct2D render target.
             d2dContext.Target = BitmapTarget2D;
@@ -472,18 +477,15 @@ namespace Realsphere.Spirit.RenderingCommon
         /// <returns>An instance of swap chain</returns>
         protected abstract SharpDX.DXGI.SwapChain1 CreateSwapChain(SharpDX.DXGI.Factory2 factory, SharpDX.Direct3D11.Device device, SharpDX.DXGI.SwapChainDescription1 desc);
 
-        protected override void Dispose(bool disposeManagedResources)
+        void IDisposable.Dispose()
         {
-            if (disposeManagedResources)
+            if (SwapChain != null)
             {
-                if (SwapChain != null)
-                {
-                    // Make sure we are no longer in fullscreen or the disposing of
-                    // Direct3D device will generate an exception.
-                    SwapChain.IsFullScreen = false;
-                }
+                // Make sure we are no longer in fullscreen or the disposing of
+                // Direct3D device will generate an exception.
+                SwapChain.IsFullScreen = false;
             }
-            base.Dispose(disposeManagedResources);
+            dc.Dispose();
         }
 
         /// <summary>

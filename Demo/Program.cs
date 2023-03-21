@@ -99,7 +99,7 @@ namespace Demo
             go6.Transform.Position = new SVector3(11f, 9f, 10f);
             go6.Transform.Scale = new SVector3(1f, 1f, 1f);
             nut.GameObjects.Add(go6);
-            
+
             // random cubes (stars)
             Random r = new Random();
             for (int i = 0; i < 5000; i++)
@@ -125,7 +125,7 @@ namespace Demo
             }
 
             nut.Light.LightColor = new(150f, 150f, 150f, 255f);
-            nut.Light.LightDirection = new(50f, 50f, 50f);
+            nut.Light.Direction = new(50f, 50f, 50f);
 
             // Set scene
             Game.ActiveScene = nut;

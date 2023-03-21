@@ -36,6 +36,8 @@ namespace Realsphere.Spirit
 
         PixelShader pixelShader;
 
+        internal DisposeCollector dc;
+
         internal BoundingSphere cameraBoundingSphere = new BoundingSphere();
 
         PixelShader depthPixelShader;
@@ -88,6 +90,7 @@ namespace Realsphere.Spirit
 
         internal SpiritD3DApp(bool fullscreen, string title, int w, int h, Bitmap companyico, Bitmap gameico)
         {
+            dc = new();
             ThreadPool.SetMaxThreads(Environment.ProcessorCount * 250, Environment.ProcessorCount * 250);
             AudioMaster.init();
             AudioMaster.setListenerData();
@@ -100,7 +103,7 @@ namespace Realsphere.Spirit
                 wndHicon = gameico.GetHicon();
 
                 // Create Icon for Window
-                Icon ico = ToDispose(Icon.FromHandle(wndHicon));
+                Icon ico = dc.Collect(Icon.FromHandle(wndHicon));
                 wnd.Icon = ico;
             }
 
@@ -194,18 +197,6 @@ namespace Realsphere.Spirit
             Window.WindowState = FormWindowState.Normal;
         }
 
-        protected override void Dispose(bool disposeManagedResources)
-        {
-            Logger.Log("Disposing...", LogLevel.Information);
-            if (disposeManagedResources)
-            {
-                if (SwapChain != null && !SwapChain.IsDisposed)
-                {
-                    SwapChain.IsFullScreen = false;
-                }
-            }
-            DeviceManager.Dispose();
-        }
         static bool swapChainPrintLog = false;
         static SwapChain1 res;
         protected override SwapChain1 CreateSwapChain(Factory2 factory1, SharpDX.Direct3D11.Device device, SwapChainDescription1 desc1)
@@ -222,7 +213,7 @@ namespace Realsphere.Spirit
                 Windowed = true
             };
 
-            using (var dxgiDevice2 = device.QueryInterface<Device2>())
+            using (var dxgiDevice2 = device.QueryInterface<SharpDX.DXGI.Device2>())
             using (var dxgiAdapter = dxgiDevice2.Adapter)
             using (var dxgiFactory2 = dxgiAdapter.GetParent<Factory2>())
             {
@@ -252,21 +243,18 @@ namespace Realsphere.Spirit
         {
             base.CreateDeviceDependentResources(deviceManager);
 
-            RemoveAndDispose(ref vertexShader);
-
-            RemoveAndDispose(ref pixelShader);
-            RemoveAndDispose(ref depthPixelShader);
-            RemoveAndDispose(ref lambertShader);
-            RemoveAndDispose(ref blinnPhongShader);
-            RemoveAndDispose(ref phongShader);
-
-            RemoveAndDispose(ref vertexLayout);
-            RemoveAndDispose(ref perObjectBuffer);
-            RemoveAndDispose(ref perFrameBuffer);
-            RemoveAndDispose(ref perMaterialBuffer);
-            RemoveAndDispose(ref perArmatureBuffer);
-
-            RemoveAndDispose(ref depthStencilState);
+            if(vertexShader != null) dc.RemoveAndDispose(ref vertexShader);
+            if(pixelShader != null) dc.RemoveAndDispose(ref pixelShader);
+            if(depthPixelShader != null) dc.RemoveAndDispose(ref depthPixelShader);
+            if(lambertShader != null) dc.RemoveAndDispose(ref lambertShader);
+            if(blinnPhongShader != null) dc.RemoveAndDispose(ref blinnPhongShader);
+            if(phongShader != null) dc.RemoveAndDispose(ref phongShader);
+            if(vertexLayout != null) dc.RemoveAndDispose(ref vertexLayout);
+            if(perObjectBuffer != null) dc.RemoveAndDispose(ref perObjectBuffer);
+            if(perFrameBuffer != null) dc.RemoveAndDispose(ref perFrameBuffer);
+            if(perMaterialBuffer != null) dc.RemoveAndDispose(ref perMaterialBuffer);
+            if(perArmatureBuffer != null) dc.RemoveAndDispose(ref perArmatureBuffer);
+            if(depthStencilState != null) dc.RemoveAndDispose(ref depthStencilState);
 
             var device = deviceManager.Direct3DDevice;
             var context = deviceManager.Direct3DContext;
@@ -274,9 +262,9 @@ namespace Realsphere.Spirit
             // Compile and create the vertex shader and input layout
             using (var vertexShaderBytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDVS), "VSMain", "vs_5_0"))
             {
-                vertexShader = ToDispose(new VertexShader(device, vertexShaderBytecode));
+                vertexShader = dc.Collect(new VertexShader(device, vertexShaderBytecode));
                 // Layout from VertexShader input signature
-                vertexLayout = ToDispose(new InputLayout(device,
+                vertexLayout = dc.Collect(new InputLayout(device,
                     vertexShaderBytecode.GetPart(ShaderBytecodePart.InputSignatureBlob),
                 new[]
                 {
@@ -290,27 +278,27 @@ namespace Realsphere.Spirit
             // Compile and create the vertex shader and input layout
             using (var vertexShaderBytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRDS), "VSMain", "vs_5_0"))
             {
-                simpleDiffuseVS = ToDispose(new VertexShader(device, vertexShaderBytecode));
+                simpleDiffuseVS = dc.Collect(new VertexShader(device, vertexShaderBytecode));
             }
 
             using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDPX), "PSMain", "ps_5_0"))
-                phongShader = ToDispose(new PixelShader(device, bytecode));
+                phongShader = dc.Collect(new PixelShader(device, bytecode));
 
             using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRDS), "PSMain", "ps_5_0"))
-                simpleDiffusePS = ToDispose(new PixelShader(device, bytecode));
+                simpleDiffusePS = dc.Collect(new PixelShader(device, bytecode));
 
-            using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRPX).Substring(1), "PSMain", "ps_5_0"))
-                reflectivePS = ToDispose(new PixelShader(device, bytecode));
+            //using (var bytecode = HLSLCompiler.CompileFromCode(Encoding.UTF8.GetString(Properties.Resources.SDRPX).Substring(1), "PSMain", "ps_5_0"))
+            //    reflectivePS = ToDispose(new PixelShader(device, bytecode));
 
-            perObjectBuffer = ToDispose(new SharpDX.Direct3D11.Buffer(device, Utilities.SizeOf<ConstantBuffers.PerObject>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
+            perObjectBuffer = dc.Collect(new SharpDX.Direct3D11.Buffer(device, Utilities.SizeOf<ConstantBuffers.PerObject>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
-            perFrameBuffer = ToDispose(new Buffer(device, Utilities.SizeOf<ConstantBuffers.PerFrame>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
+            perFrameBuffer = dc.Collect(new Buffer(device, Utilities.SizeOf<ConstantBuffers.PerFrame>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
-            perMaterialBuffer = ToDispose(new Buffer(device, Utilities.SizeOf<ConstantBuffers.PerMaterial>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
+            perMaterialBuffer = dc.Collect(new Buffer(device, Utilities.SizeOf<ConstantBuffers.PerMaterial>(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
-            perArmatureBuffer = ToDispose(new Buffer(device, ConstantBuffers.PerArmature.Size(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
+            perArmatureBuffer = dc.Collect(new Buffer(device, ConstantBuffers.PerArmature.Size(), ResourceUsage.Default, BindFlags.ConstantBuffer, CpuAccessFlags.None, ResourceOptionFlags.None, 0));
 
-            depthStencilState = ToDispose(new DepthStencilState(device,
+            depthStencilState = dc.Collect(new DepthStencilState(device,
                 new DepthStencilStateDescription()
                 {
                     IsDepthEnabled = true,
@@ -351,7 +339,7 @@ namespace Realsphere.Spirit
 
             context.OutputMerger.DepthStencilState = depthStencilState;
 
-            context.Rasterizer.State = ToDispose(new RasterizerState(device, new RasterizerStateDescription()
+            context.Rasterizer.State = dc.Collect(new RasterizerState(device, new RasterizerStateDescription()
             {
                 FillMode = FillMode.Solid,
                 CullMode = CullMode.Front,
@@ -394,7 +382,12 @@ namespace Realsphere.Spirit
         // basically dispose, but better
         public void Drop()
         {
-            Dispose();
+            Logger.Log("Disposing...", LogLevel.Information);
+            if (SwapChain != null && !SwapChain.IsDisposed)
+            {
+                SwapChain.IsFullScreen = false;
+            }
+            DeviceManager.Dispose();
             fps.Drop();
             Window.Close();
             Window.Dispose();
@@ -407,6 +400,7 @@ namespace Realsphere.Spirit
                 DeviceManager.WICFactory.Dispose();
                 DeviceManager.Dispose();
             }
+            dc.Dispose();
         }
 
         internal bool canCameraSeeObject(GameObject go)
@@ -416,7 +410,6 @@ namespace Realsphere.Spirit
 
         internal override void Run()
         {
-            Console.WriteLine("cfps");
             fps = new FpsCounter(this);
 
             var worldMatrix = Matrix.Identity;
@@ -498,7 +491,7 @@ namespace Realsphere.Spirit
 
                 var perFrame = new ConstantBuffers.PerFrame();
                 perFrame.Light.Color = Game.ActiveScene.Light.LightColor.sharpdxcolor;
-                var lightDir = ((Vector3)Vector3.Transform(Game.ActiveScene.Light.LightDirection.sharpDXVector, worldMatrix));
+                var lightDir = ((Vector3)Vector3.Transform(Game.ActiveScene.Light.Direction.sharpDXVector, worldMatrix));
                 perFrame.Light.Direction = lightDir;
                 perFrame.CameraPosition = Game.Player.CameraPosition.sharpDXVector;
                 context.UpdateSubresource(ref perFrame, perFrameBuffer);
@@ -516,7 +509,7 @@ namespace Realsphere.Spirit
                     //Display Triggers
                     foreach (Trigger trigger in Game.ActiveScene.Triggers)
                     {
-                        foreach(var renderer in trigger.go.renderers) renderer.PerMaterialBuffer = perMaterialBuffer;
+                        foreach (var renderer in trigger.go.renderers) renderer.PerMaterialBuffer = perMaterialBuffer;
                         trigger.render(context);
                     }
                 }
@@ -567,14 +560,15 @@ namespace Realsphere.Spirit
             {
                 var Material = renderer.mat;
                 var perMaterial = new ConstantBuffers.PerMaterial();
-                if(Material != null)
+                if (Material != null)
                 {
                     perMaterial.Ambient = Material.Ambient.sharpdxcolor;
                     perMaterial.Diffuse = Material.Diffuse.sharpdxcolor;
                     perMaterial.Emissive = Material.Emissive.sharpdxcolor;
                     perMaterial.Specular = Material.Specular.sharpdxcolor;
                     perMaterial.SpecularPower = Material.SpecularPower;
-                }else
+                }
+                else
                 {
                     perMaterial.Ambient = new(255f);
                     perMaterial.Diffuse = new(255f);
@@ -593,7 +587,7 @@ namespace Realsphere.Spirit
                     Material.Texture.apply(renderer);
                 }
                 renderer.RenderContext.UpdateSubresource(ref perObject, perObjectBuffer);
-                renderer.Render();
+                renderer.Render(obj);
             }
             context.VertexShader.Set(vertexShader);
             context.PixelShader.Set(phongShader);

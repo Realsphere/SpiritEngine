@@ -1,6 +1,9 @@
-﻿using Realsphere.Spirit.Rendering;
+﻿using Realsphere.Spirit.Internal.Common;
+using Realsphere.Spirit.Rendering;
 using Realsphere.Spirit.RenderingCommon;
+using Realsphere.Spirit.SceneManagement;
 using SharpDX;
+using SharpDX.Direct3D;
 using SharpDX.Direct3D11;
 using SharpDX.DXGI;
 using System.Collections.Generic;
@@ -20,7 +23,7 @@ namespace Realsphere.Spirit.Internal
         List<Buffer> indexBuffers = new List<Buffer>();
         // Texture resources
         internal List<ShaderResourceView> textureViews = new List<ShaderResourceView>();
-
+        DisposeCollector dc;
         Mesh mesh;
         // Provide access to the underlying mesh object
         public Mesh Mesh { get { return mesh; } }
@@ -32,19 +35,20 @@ namespace Realsphere.Spirit.Internal
 
         public MeshRenderer(Mesh mesh)
         {
+            dc = new();
             this.mesh = mesh;
         }
 
         protected override void CreateDeviceDependentResources()
         {
             // Dispose of each vertex, index buffer and texture
-            vertexBuffers.ForEach(vb => RemoveAndDispose(ref vb));
+            vertexBuffers.ForEach(vb => dc.RemoveAndDispose(ref vb));
             vertexBuffers.Clear();
-            indexBuffers.ForEach(ib => RemoveAndDispose(ref ib));
+            indexBuffers.ForEach(ib => dc.RemoveAndDispose(ref ib));
             indexBuffers.Clear();
-            textureViews.ForEach(tv => RemoveAndDispose(ref tv));
+            textureViews.ForEach(tv => dc.RemoveAndDispose(ref tv));
             textureViews.Clear();
-            RemoveAndDispose(ref samplerState);
+            dc.RemoveAndDispose(ref samplerState);
 
             // Retrieve our SharpDX.Direct3D11.Device1 instance
             var device = DeviceManager.Direct3DDevice;
@@ -60,14 +64,14 @@ namespace Realsphere.Spirit.Internal
                     vertices[i] = new Vertex(vb[i].Position, vb[i].Normal, vb[i].Color, vb[i].UV);
                 }
 
-                vertexBuffers.Add(ToDispose(Buffer.Create(device, BindFlags.VertexBuffer, vertices.ToArray())));
+                vertexBuffers.Add(dc.Collect(Buffer.Create(device, BindFlags.VertexBuffer, vertices.ToArray())));
                 vertexBuffers[vertexBuffers.Count - 1].DebugName = "VertexBuffer_" + indx.ToString();
             }
 
             // Initialize index buffers
             foreach (var ib in mesh.IndexBuffers)
             {
-                indexBuffers.Add(ToDispose(Buffer.Create(device, BindFlags.IndexBuffer, ib)));
+                indexBuffers.Add(dc.Collect(Buffer.Create(device, BindFlags.IndexBuffer, ib)));
                 indexBuffers[indexBuffers.Count - 1].DebugName = "IndexBuffer_" + (indexBuffers.Count - 1).ToString();
             }
 
@@ -79,14 +83,14 @@ namespace Realsphere.Spirit.Internal
                 for (var i = 0; i < m.Textures.Length; i++)
                 {
                     if (SharpDX.IO.NativeFile.Exists(m.Textures[i]))
-                        textureViews.Add(ToDispose(ShaderResourceView.FromFile(device, m.Textures[i])));
+                        textureViews.Add(dc.Collect(TextureLoader.ShaderResourceViewFromFile(device, m.Textures[i])));
                     else
                         textureViews.Add(null);
                 }
             }
 
             // Create our sampler state
-            samplerState = ToDispose(new SamplerState(device, new SamplerStateDescription()
+            samplerState = dc.Collect(new SamplerState(device, new SamplerStateDescription()
             {
                 AddressU = TextureAddressMode.Clamp,
                 AddressV = TextureAddressMode.Clamp,
@@ -115,7 +119,7 @@ namespace Realsphere.Spirit.Internal
         // Play once or loop the animation?
         public bool PlayOnce { get; set; }
 
-        protected override void DoRender()
+        protected override void DoRender(GameObject obj)
         {
             if (Game.app.pauseRendering) return;
 
@@ -274,7 +278,7 @@ namespace Realsphere.Spirit.Internal
                             };
                         }
 
-                        if (objectOn.Materials != null && objectOn.Materials.Length > 0)
+                        if (objectOn.Materials != null && objectOn.Materials.Length > 0 && objectOn.Shader != SShader.Reflective)
                         {
                             // Bind textures to the pixel shader
                             int texIndxOffset = mIndx * Mesh.MaxTextures;
@@ -307,6 +311,11 @@ namespace Realsphere.Spirit.Internal
                     context.DrawIndexed((int)subMesh.PrimCount * 3, (int)subMesh.StartIndex, 0);
                 }
             }
+        }
+
+        public override void Dispose()
+        {
+            dc.Dispose();
         }
     }
 }
